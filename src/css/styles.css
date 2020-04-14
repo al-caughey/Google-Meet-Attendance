@@ -1,0 +1,38 @@
+#Attendance-div{
+  opacity:0.3;
+  left:0;
+  position:absolute;
+  top: 88px;
+  z-index:99;
+}
+#Attendance-div p{
+  background:red;
+  border-radius: 4px 0 0 0 ;
+  color:#EEE;
+  font-weight:bold;
+  margin:0;
+  padding:0 0 0 4px;
+}
+#Attendance-div p span{
+  cursor: pointer;
+  margin: 0 4px;
+  opacity: .75;
+}
+#Invited-List{
+  max-height:66px;
+  white-space: nowrap;
+}
+#Attendance-div.empty, #Attendance-div:hover, #Attendance-div p span:hover {
+  opacity: 1;
+}
+.empty #Invited-List, #Attendance-div:hover #Invited-List {
+  max-height: calc( 100% - 144px);
+  transition: height 0.5s ease-out;
+}
+#Invited-List:focus {
+  max-height: calc( 100% - 144px);
+  width: 228px;
+}
+.hidden{
+	display:none;
+}

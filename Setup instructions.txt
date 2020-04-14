@@ -1,0 +1,14 @@
+In Chrome:
+1. turn off the Grid View extension (chrome://extensions/)
+2. add the TamperMonkey extension (https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en)
+3. restart Chrome
+4. install `my` script: https://openuserjs.org/scripts/Al_Caughey/Google_Meet_Grid_View_Attendance
+5. launch a Google Meet (https://meet.google.com)
+6. paste your class list into the field on the right side of the screen.  The format of the names may be somewhat system dependent... in my case, my students appear with first name followed by last name (without an email address).  You might have to alter the format of your initial list.
+   When you leave the non-empty field (i.e, click outside of the field), it will `hide` in the lower right corner of the screen
+   If you hover over the field or click within it, it will pop-up to full size again
+   
+   As participants join the meeting, a checkmark will be added beside their name if it is already in the list; otherwise they'll be appended to the bottom of the list with a preceding `?`
+   
+   Click the [-] button at the top of the field to clear all checks from the list of names
+   Click the [x] button to empty the field
