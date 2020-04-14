@@ -4,7 +4,7 @@ This extension allows you to input a list of invitees to a Google Meet and then 
 
 This extension does not require extra permissions other than access to meet.google.com. The list of invitees is retained in a LocalStorage variable but none of that information is transmitted or shared elsewhere by the extension.  All of the source code can be viewed at this [public repository](https://github.com/al-caughey/Google-Meet-Attendance).
 
-Send kudos and constructive feedback to allan.caughey@ocdsb.ca.  I will do my best to reply to feature requests or support issues but please understand that my students (and home-life) come first.  
+Send kudos and constructive feedback to <a href='mailto:allan.caughey@ocdsb.ca?subject=Google Meet Attendance Feedback'>allan.caughey@ocdsb.ca</a>.  I will do my best to reply to feature requests or support issues but please understand that my students (and home-life) come first.  
 
 # Cloning / building
 
