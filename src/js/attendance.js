@@ -51,14 +51,17 @@
 	
 	// update the LocalStorage variable when the list has changed
 	function listChanged(){
-		console.log('listChanged', $("#Invited-List")[0], $("#Attendance-div")[0])
+		console.log('listChanged')
 		if (!$("#Invited-List")[0]) return
-		let ct=($("#Invited-List")[0].value).trim()
+		//let ct=($("#Invited-List")[0].value).trim()
+		let ct=document.getElementById('Invited-List').value.trim()
 		if(ct===''){
 			document.getElementById('cl-chk').classList.add('hidden')
+			document.getElementById('Attendance-div').classList.add('empty')
 		}
 		else{
 			document.getElementById('cl-chk').classList.remove('hidden')
+			document.getElementById('Attendance-div').classList.remove('empty')
 		}
 		localStorage.setItem('Meet-Invited-List',ct)
 	}
@@ -77,7 +80,8 @@
 		console.log('clearList')
 		document.getElementById("Invited-List").value='';
 		localStorage.setItem('Meet-Invited-List','')
-		$("#Attendance-div")[0].addClass('empty')
+		document.getElementById("Invited-List").classList.add('empty')
+		document.getElementById('cl-chk').classList.add('hidden')
 	}
 
 	// update the attendance status of the invitees
@@ -160,7 +164,10 @@
 	
 	//wait until the DOM element holding the participant info is available
 	waitForElement("[data-allocation-index]",function(){
-		document.getElementById('cl-chk').classList.remove('hidden')
+		let ct=document.getElementById('Invited-List').value.trim()
+		if(ct!==''){
+			document.getElementById('cl-chk').classList.remove('hidden')
+		}
 		checkParticipants()
 		
 		// watch for changes (adding new participants to the Meet)
