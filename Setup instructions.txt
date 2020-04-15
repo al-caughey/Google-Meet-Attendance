@@ -1,14 +1,22 @@
-In Chrome:
-1. turn off the Grid View extension (chrome://extensions/)
-2. add the TamperMonkey extension (https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en)
-3. restart Chrome
-4. install `my` script: https://openuserjs.org/scripts/Al_Caughey/Google_Meet_Grid_View_Attendance
-5. launch a Google Meet (https://meet.google.com)
-6. paste your class list into the field on the right side of the screen.  The format of the names may be somewhat system dependent... in my case, my students appear with first name followed by last name (without an email address).  You might have to alter the format of your initial list.
-   When you leave the non-empty field (i.e, click outside of the field), it will `hide` in the lower right corner of the screen
-   If you hover over the field or click within it, it will pop-up to full size again
+Google Meet Attendance is now an full-fledged Chrome extension!
+
+Go to https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd/publish-accepted?authuser=0&hl=en
+And then click `Add to Chrome`
+
+You are now setup!  To see the extension in action, 
+Launch a Google Meet (https://meet.google.com)
+
+On meeting join page, you will see `Class List` field - by default, it will appear on the left side on the screen, but you can drag it to whereever you want.  
+
+You can paste, or type, the list of expected `invitees` for your Meet into the field. Enter each name on a separate line. How you enter the names is likely system dependent... in my case, my students appear as "<FIRST> <LAST>". 
+
+So it does not obstruct the screen during your Meet, the `Class List` will `hide` when it loses focus (i.e., it will be come faintly visible when you tab or click outside the field).  If you hover over the field or click within it, it will pop-up to full size again.
    
-   As participants join the meeting, a checkmark will be added beside their name if it is already in the list; otherwise they'll be appended to the bottom of the list with a preceding `?`
-   
-   Click the [-] button at the top of the field to clear all checks from the list of names
-   Click the [x] button to empty the field
+As participants join the meeting, the extension will automatically update the list - prepending a checkmark to names already in the list and appending names of `uninvited` participants at the bottom.
+
+The contents of the `Class List` field is saved to a LocalStorage variable so it is remembered if you reload the page and (in theory) should be saved if you close Chrome.  I say in theory because my school board automatically flushes LocalStorage variables when you leave Chrome.
+
+There are a few `buttons` above the list of names:
+   Click [-] to clear all checks from the list of names (i.e., revert to just the list of names)
+   Click [x] to erase all of the names in the field
+   Click [x] to manually check the attendance (but in reality, it should not be necessary to do this as the attendance is automatically check)
