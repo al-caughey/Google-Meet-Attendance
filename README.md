@@ -17,9 +17,9 @@ On meeting join page, you will see `Class List` field - by default, it appears o
 
 You can paste, or type, the list of expected `invitees` for your Meet into the field - each name entered onto a separate line. How you enter the names is likely system dependent... in my case, my students appear as "FIRST LAST" (yes, all uppercase... they're already shouting as they enter!)
 
-So it does not obstruct the screen during your Meet, the `Class List` will `hide` when it loses focus (i.e., it will be come faintly visible when you tab or click outside the field).  If you hover over the field or click within it, it will pop-up to full size again.
+So it does not obstruct the screen during your Meet, the `Class List` will hide when it loses focus (i.e., it will be come faintly visible when you tab or click outside the field).  If you hover over the field or click within it, it will pop-up to full size again.
    
-As participants join the meeting, the extension will automatically update the list - prepending a checkmark to names already in the list and appending names of `uninvited` participants at the bottom.
+As participants join the meeting, the extension will automatically update the list - prepending a checkmark to names already in the list and appending names of 'uninvited' participants at the bottom.
 
 The contents of the `Class List` field is saved to a LocalStorage variable so it is remembered if you reload the page and (in theory) should be saved if you close Chrome and then later return.  I say in theory because my school board automatically flushes my LocalStorage variables when I shutdown the browser.
 
