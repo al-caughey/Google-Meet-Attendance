@@ -2,7 +2,7 @@
 
 # Introduction and acknowledgements
 
-This extension is intended the help teachers, like myself, who are rapidy transitioning to the new reality of online classes and need a simple(r) way to find out who joined a Google Meet session.
+This extension is intended the help teachers, like myself, who are rapidy transitioning to the new reality of online classes and need a simple(r) way to record who joined a Google Meet session.
 
 It was initially inspired by Chris Gamble's Userscript (https://greasyfork.org/en/scripts/397862-google-meet-grid-view) and the related extension.  Originally, I incorporated the attendance functionality right into Chris' userscript but subsequently, decided to re-write it as an entirely separate extension.
 
