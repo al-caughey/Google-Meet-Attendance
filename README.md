@@ -1,4 +1,4 @@
-# Google Meet Attendance is now an full-fledged Chrome extension!
+# [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd/publish-accepted?authuser=0&hl=en)is now a Chrome extension!
 
 # Introduction and acknowledgements
 
