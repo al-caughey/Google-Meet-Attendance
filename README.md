@@ -21,9 +21,9 @@ So it does not obstruct the screen during your Meet, the `Class List` will hide 
    
 As participants join the meeting, the extension will automatically update the list - prepending a checkmark to names already in the list and appending names of '*uninvited*' participants at the bottom.
 
-The contents of the `Class List` field is saved to a LocalStorage variable so it is remembered if you reload the page and (in theory) should be saved if you close Chrome and then later return.  I say in theory because my school board automatically flushes my LocalStorage variables when I shutdown the browser.
+The contents of the `Class List` field is saved to a LocalStorage variable so it is remembered if you reload the page and (in theory) should be saved if you close Chrome and then later return.  I say in theory because my school board automatically flushes my LocalStorage variables when I shutdown the browser (so I cannot actually test this feature).
 
-There are a few `buttons` above the list of names:
+There are a few buttons above the `Class List` field:
 * Click [-] to clear all checks from the list of names (i.e., revert to just the list of names)
 * Click [x] to erase all of the names in the field
 * Click [x] to manually check the attendance (but in reality, this should not be necesary because the extention should be doing  this automatically)
