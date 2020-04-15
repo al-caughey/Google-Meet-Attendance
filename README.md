@@ -4,7 +4,7 @@ This extension allows you to input a list of invitees to a Google Meet and then 
 
 This extension does not require extra permissions other than access to meet.google.com. The list of invitees is retained in a LocalStorage variable but none of that information is transmitted or shared elsewhere by the extension.  All of the source code can be viewed at this [public repository](https://github.com/al-caughey/Google-Meet-Attendance).
 
-Send kudos and constructive feedback to <a href='mailto:allan.caughey@ocdsb.ca?subject=Google Meet Attendance Feedback'>allan.caughey@ocdsb.ca</a>.  I will do my best to reply to feature requests or support issues but please understand that my students (and home-life) come first.  
+Please enter issues and constructive feedback in the [issues page](https://github.com/al-caughey/Google-Meet-Attendance/issues). I will do my best to reply to feature requests or support issues as quickly as possible but please understand that my students (and home-life) come first.  Kudos would be nice too!
 
 # Google Meet Attendance is now an full-fledged Chrome extension!
 
@@ -28,11 +28,3 @@ There are a few `buttons` above the list of names:
    Click [-] to clear all checks from the list of names (i.e., revert to just the list of names)
    Click [x] to erase all of the names in the field
    Click [x] to manually check the attendance (but in reality, it should not be ne
-
-# Cloning / building
-
-NB - I am not a github expert (in fact nowhere near close to that!)... so you might need to go elsewhere if you need help with cloning and building your own variant of this script.
-This repo uses submodules to keep pulling the latest userscript... so you'll want to do `git clone --recursive` if you're installing the script locally.
-
-[stolen verbatim from Ryan Meyers repo] To build the script yourself, just clone the repo, go to the directory and use `zip -r packed.zip src` that will generate the zip file you need to upload to the Chrome Web Store (I think it costs like $5 one time to become a developer on there). Oh, and be sure to adjust the variables in `manifest.json` to reflect your own information.
-
