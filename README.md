@@ -11,7 +11,7 @@ The extension does not require extra permissions other than access to meet.googl
 # To see the extension in action, 
 Go to [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd/publish-accepted?authuser=0&hl=en) at the Chrome web store and click `Add to Chrome`
 
-Launch a Google Meet (https://meet.google.com)
+Launch a [Google Meet](https://meet.google.com)
 
 On meeting join page, you will see `Class List` field - by default, it appears on the left side, but you can drag it whereever you want on the screen.  
 
