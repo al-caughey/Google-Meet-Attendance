@@ -3,9 +3,9 @@ https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd
 
 # Introduction and acknowledgements
 
-This extension is intended the help teachers, like myself, who are rapidy transitioning to the new reality of online classes and need a simple(r) way to record who joined a Google Meet session.
+This extension is intended to help teachers, like myself, who are rapidly transitioning to the new reality of online classes and need a simple(r) way to record who joined a Google Meet session.
 
-It was initially inspired by Chris Gamble's Userscript (https://greasyfork.org/en/scripts/397862-google-meet-grid-view) and the related extension.  Originally, I incorporated the attendance functionality right into Chris' userscript but subsequently, decided to re-write it as an entirely separate extension.
+It was initially inspired by Chris Gamble's Userscript (https://greasyfork.org/en/scripts/397862-google-meet-grid-view) and the related extension.  Originally, I incorporated my attendance functionality right into Chris' userscript but subsequently, decided to re-write it as an entirely separate extension.
 
 The extension does not require extra permissions other than access to meet.google.com. The list of invitees is retained in a LocalStorage variable but none of that information is transmitted or shared elsewhere by the extension.  All of the source code can be viewed at this [public repository](https://github.com/al-caughey/Google-Meet-Attendance).
 
