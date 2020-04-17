@@ -1,0 +1,20 @@
+body.no-meeting p {
+	display:none;
+}
+body.no-meeting #not-running {
+	display:block;
+	font-style:italic;
+}
+body #not-running{
+	display:none;
+}
+h3 {
+    white-space: nowrap;
+}
+p, h3 {
+	margin: 0;
+	padding: 0;
+}
+a {
+	white-space: nowrap;
+}
