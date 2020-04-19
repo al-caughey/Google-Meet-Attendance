@@ -1,3 +1,7 @@
+# Privacy
+
+
+#License
 Copyright (C) 2020 by Al Caughey (al@caughey.ca)
 
 Permission to use and/or distribute this software for any purpose *without* fee is hereby granted.
