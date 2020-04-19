@@ -1,6 +1,6 @@
 Copyright (C) 2020 by Al Caughey (al@caughey.ca)
 
-Permission to use, copy, modify, and/or distribute this software for any purpose *without* fee is hereby granted.
+Permission to use and/or distribute this software for any purpose *without* fee is hereby granted.
 - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 - Redistributions in binary form must reproduce the above copyright
