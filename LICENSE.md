@@ -1,7 +1,7 @@
-# Privacy
+# Privacy Policy
+In short, this extension does **not** track user data.  For convenience sake, 'class lists' (i.e., the list of expected attendees) are saved to LocalStorage variables (if permitted by school/board security policies).
 
-
-#License
+# License
 Copyright (C) 2020 by Al Caughey (al@caughey.ca)
 
 Permission to use and/or distribute this software for any purpose *without* fee is hereby granted.
