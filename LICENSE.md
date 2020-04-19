@@ -1,5 +1,6 @@
 # Privacy Policy
-In short, this extension does **not** track user data.  For convenience sake, 'class lists' (i.e., the list of expected attendees) are saved to LocalStorage variables (if permitted by school/board security policies).
+In short, this extension does **not** track user data.  
+If permitted by school/board browser security policies, and the sake of for convenience only, the list of expected attendees are saved to [LocalStorage variables](https://en.wikipedia.org/wiki/Web_storage#localStorage).
 
 # License
 Copyright (C) 2020 by Al Caughey (al@caughey.ca)
