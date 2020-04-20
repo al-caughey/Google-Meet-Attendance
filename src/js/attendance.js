@@ -32,6 +32,7 @@
 		de:{ presenting:"präsentation", presentation:"bildschirm", you:"ich", joined:"nimmt teil"},
 		nl:{ presenting:"presentatie", presentation:"presenteert", you:"jij", joined:"neemt nu deel"},
 		br:{ presenting:"apresentando", presentation:"apresentação", you:"you", joined:"joined"},
+		it:{ presenting:"presentando", presentation:"presentazione", you:"tu", joined:"sta partecipando"},
 	}
 	
 	// return strings based on language
