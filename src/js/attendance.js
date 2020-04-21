@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Google Meet Grid View & Attendance
 // @namespace    https://openuserjs.org/users/Al_Caughey
-// @version      0.2.7
+// @version      0.3.1
 // @description  registers whether or not invitees actually joined a Meet
 // @author       Al Caughey
 // @include      https://meet.google.com/*
 // @grant        none
-// @license      MIT
+// @license      https://github.com/al-caughey/Google-Meet-Attendance/blob/master/LICENSE.md
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -17,6 +17,9 @@
 // v0.2.4 - expanded the select query for participants; tweaks to observe
 // v0.2.5 - minor wording change in the manifest
 // v0.2.6 - tweaks to regex to gather names; initial localization: en, fr, de & nl
+// v0.2.7 - added link to uninstall questionaire
+// v0.3.0 - downloads the attendance as a text file; added help page
+// v0.3.1 - added warning for unsaved changes; added Italian; fixed double name issue; change file export to csv (tab delimited)
 
 ;(function() {
 	
@@ -83,7 +86,27 @@
 		.append($("<option />").text('Add').val('+').attr('title','Add `named` class... NB - only use if LocalStorage variables are permitted'))
 		return cldd
 	}
-	// save the class info to the LS variables
+	// save the class info to the text file
+	function saveTextFile(){
+		
+		function twod(v){
+			return ('0'+Number(v)).slice(-2)
+		}
+		let today = new Date(), d=today.getDate(),m=today.getMonth()+1,y=today.getFullYear()
+		let cdate=y+'-'+twod(m)+'-'+twod(d), ctime=today.getHours()+':'+twod(today.getMinutes())
+		let cdd = document.getElementById("cl-hdr"), cn= cdd.options[cdd.selectedIndex].text;
+		let header='Attendance for: '+cn+' on '+cdate+'\n\n'+'Names\t'+ctime+'\n'
+		let joined = /^\s*([✔\?])\s*(.*)$/gm
+		let txt=document.getElementById('Invited-List').value.replace(joined, "$2"+'\t'+"$1")
+		let blob = new Blob([header+txt], {type: 'text/plain;charset=utf-8'})
+		let temp_a = document.createElement("a")
+    	temp_a.download = cn+' ('+cdate+').csv'
+		temp_a.href = window.webkitURL.createObjectURL(blob)
+		temp_a.click()
+		//window.URL.revokeObjectURL(url)
+
+		document.getElementById('save-text').style.visibility='hidden'
+	}
 	function saveClass(){
 		//console.log('saveClass')
 		let cn=document.getElementById('class-name').value.trim()
@@ -95,11 +118,13 @@
 		no.text = cn;
 		no.value = cc;
 		document.getElementById("cl-hdr").options.add(no, num);
+		document.getElementById("cl-hdr").value=cc;
 		localStorage.setItem('Current-Class-Code', cc)
 		let classInfo=JSON.parse(localStorage.getItem('__Class-Info'))||{}
 		classInfo[cc]=cn
 		localStorage.setItem('__Class-Info', JSON.stringify(classInfo))
 		document.getElementById('class-delete').style.visibility='visible'
+		saveHide()
 	}
 	//delete a class from the drop-down & LS variables
 	function deleteClass(){
@@ -117,10 +142,12 @@
 		csl.remove(csl.selectedIndex);
 		document.getElementById('class-name').value=''
 		document.getElementById('class-code').value=''
-		document.getElementById('cl-hdr').value=''
+		document.getElementById('cl-hdr').value='null'
 		document.getElementById('Invited-List').value=''
 		document.getElementById('class-delete').style.visibility='hidden'
 		document.getElementById('class-save').style.visibility='hidden'
+		changeClass()
+		saveHide()
 		//to-do: delete the select/option entry too
 	}
 	// pick new class from drop-down
@@ -145,7 +172,8 @@
 			document.getElementById('Attendance-div').classList.add('empty')
 		else
 			document.getElementById('Attendance-div').classList.remove('empty')
-		
+		document.getElementById('save-text').style.visibility='hidden'
+
 	}
 	// called when add is selected from the drop-down
 	function addClassInfo(){
@@ -154,6 +182,7 @@
 		document.getElementById('class-name').value=''
 		document.getElementById('Invited-List').value=''
 		document.getElementById('class-edit').style.display='block'
+		document.getElementById('class-delete').style.visibility='hidden'
 		localStorage.setItem('Current-Class-Code', 'null')
 		document.getElementById('Attendance-div').classList.add('empty')
 	}
@@ -168,7 +197,7 @@
 		document.getElementById('class-edit').style.display='block'
 		document.getElementById('class-show').style.display='none'
 		document.getElementById('class-hide').style.display='inline'
-		if(document.getElementById('class-name').value==='') 
+		if(document.getElementById('class-code').value==='null') 
 			document.getElementById('class-delete').style.visibility='hidden'
 		else
 			document.getElementById('class-delete').style.visibility='visible'
@@ -205,14 +234,16 @@
 		let currentClassCode=localStorage.getItem('Current-Class-Code')
 		if (currentClassCode==='') currentClassCode='null'
 		//let ct=($("#Invited-List")[0].value).trim()
-		let ct=document.getElementById('Invited-List').value.trim()
+		let ct=document.getElementById('Invited-List').value.trim().replace(duplicatedLines, "$1")
 		if(ct===''){
 			document.getElementById('Attendance-div').classList.add('empty')
 		}
 		else{
+			document.getElementById('Invited-List').value=ct
 			document.getElementById('Attendance-div').classList.remove('empty')
 		}
 		localStorage.setItem('__Class-'+currentClassCode,ct)
+		document.getElementById('save-text').style.visibility='visible'
 	}
 
 	// remove all preceding ✔|? from the list of names in the textarea
@@ -220,9 +251,9 @@
 		//console.log('clearPresent')
 		let currentClassCode=localStorage.getItem('Current-Class-Code')
 
-		var textarea = document.getElementById("Invited-List");
-		let ct=textarea.value.replace(/[✔\?] /g,'')
-		textarea.value=ct
+		var invitees = document.getElementById("Invited-List");
+		let ct=invitees.value.replace(/[✔\?] /g,'')
+		invitees.value=ct
 		localStorage.setItem('__Class-'+currentClassCode,ct)
 	}
 
@@ -270,7 +301,7 @@
 					
 			if(tallc.indexOf(lc)==-1){
 				console.log(pn + ' joined (unexpectedly)')
-				tal+='\n? '+pn + ' (not invited?!?)'
+				tal+='\n? '+pn
 				changed=true
 			}
 			else if(tallc.indexOf('? '+ lc)>=0){
@@ -291,7 +322,7 @@
 		}
 		//if the list changed, a littlehousekeeping and save the changes
 		if (changed) {
-			tta.value=tal.trim().replace('✔ ✔ ','✔ ')
+			tta.value=tal.trim().replace('✔ ✔ ','✔ ').replace(duplicatedLines, "$1")
 			listChanged()
 		}
 	}
@@ -303,6 +334,7 @@
 	.append($("<span />").attr('id','cl-ccl').attr('title','Clear attendance checks').text('[-]'))
 	.append($("<span />").attr('id','cl-clr').attr('title','Clear list').text('[x]'))
 	.append($("<span />").attr('id','cl-chk').attr('title','Check attendance').text('[✔]'))
+	.append($("<a />").attr('id','save-text').attr('title','Save Attendance as text file').text('[txt]'))
 	.append($("<span />").attr('id','class-show').attr('title','Show the class information').text('[▼]'))
 	.append($("<span />").attr('id','class-hide').attr('title','Hide this info').text('[▲]'))
 	
@@ -318,25 +350,36 @@
 	.append(atta)
 	atd.appendTo($('body'))
 	if (document.getElementById('cl-hdr').value==''||document.getElementById('cl-hdr').value=='null') document.getElementById('class-edit').style.display='none'
-	document.getElementById('class-save').style.visibility='hidden'
 	document.getElementById('class-hide').style.display='none'
+	document.getElementById('class-save').style.visibility='hidden'
 	document.getElementById('class-delete').style.visibility='hidden'
-
+	document.getElementById('save-text').style.visibility='hidden'
 	loadClassNames()
 
 	//set the behaviours
+	// warn about unsave changes
+	window.addEventListener("beforeunload", function (e) {
+		if(document.getElementById("save-text").style.visibility==='hidden')return undefined
+
+
+		let alrt = 'It looks like you have unsaved Attendance changes!'
+								+ 'If you leave before clicking `[txt`, your attendance may be lost.';
+
+		(e || window.event).returnValue = alrt; //Gecko + IE
+		return alrt; //Gecko + Webkit, Safari, Chrome etc.
+	});
 	$('#Attendance-div').draggable() // so it can be moved about on the screen
-	$('#Invited-List').change(listChanged)
-	$('#class-name').change(classInfoChanged)
-	$('#cl-ccl').click(clearPresent)
-	$('#cl-clr').click(clearList)
-	$('#cl-chk').click(checkParticipants)
-	$('#cl-hdr').change(changeClass)
-	$('#class-save').click(saveClass)
-	$('#class-delete').click(deleteClass)
-	$('#class-hide').click(saveHide)
-	$('#class-show').click(saveShow)
-	
+	$('#Invited-List').change(listChanged) // if the user edits the field
+	$('#class-name').change(classInfoChanged) // when a named class name is changed
+	$('#cl-ccl').click(clearPresent) // clear all of the attendance markings
+	$('#cl-clr').click(clearList)	// clear the class list field
+	$('#cl-chk').click(checkParticipants)	// manually fire the function to check attendance
+	$('#cl-hdr').change(changeClass)	// a change in the drop down field
+	$('#class-save').click(saveClass)	// save the new named class
+	$('#class-delete').click(deleteClass)	// delete a named class
+	$('#class-show').click(saveShow)	// show the row with the class name field
+	$('#class-hide').click(saveHide)	// hide the row 
+	$('#save-text').click(saveTextFile)	// save the class list field to a textfile
 	//create regexes before going into the observer
 	let re_you = new RegExp('\\b'+strings.you+'\\b', "gi");
 	let re_joined = new RegExp('\\b'+strings.joined, "gi");

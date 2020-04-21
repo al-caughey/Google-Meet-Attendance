@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Google Meet Attendance Help</title>
+		<link rel="stylesheet" type="text/css" href="popup.css" />
+		<meta charset="UTF-8">
+ 	</head>
+	<body>
+		<h3>Google Meet Attendance Help</h3>
+		<hr/>
+		<p>If you're seeing this page, you've already cleared the first hurdle to getting help - well done!  But admittedly, it is still pretty rudimentary.  </p>
+		<p>In short, this extension simplifies the process of taking attendance when you conduct a Google Meet.  It adds a text field with a number of buttons to the side of the Google Meet page into which you enter the list of expected attendees; that list will be automatically updated as people join. </p>
+		<ul>
+			<li>When an expected participant joins the meet, a checkmark (`✔`) will be prepended to their name.<br/>If an unexpected participant joins, their name will be added to the bottom of the list (with a leading `?`).  The invitees who do not join will have neither a leading `✔` nor  a leading `?`
+			<li>In my experience, the names should be entered `firstname lastname` - e.g, `Al Caughey` but that may not be the case for all schools/boards.  If you are uncertain how to enter them, go to https://meet.google.com/, leave the `Class List` field empty and join the meet. When you change to the People tab, your name will be added to the field and that should tell you how to input your students' names.
+			<li>It does not matter if you enter the names in upper or lower case but abbreviations will not match (e.g., `Allan Caughey` is not the same as `Al Caughey` or vice versa).  Again, this does not matter too much because you can edit the contents of the field while the Meet is in progress.
+			<li>Typically, if you are the first person in the Meet, the attendance will update properly right away.  If some of the participants joined before you, their names might not get marked as present.  If this happens, changing to the People view usually will correct that.
+			<li>By default, the Class list appears on the left side of the screen but you can drag it whereever you like</li>
+			<li>The Class List field will `hide` when you tab or click outside of it (this is so that it does not obstruct the screen during your meet.  If you hover over, or click inside the field, it will pop-up to full-size again.</li>
+			<li>There are a number of `buttons` in the toolbar... several will only appear when applicable. Yes, I know that the buttons are ugly ATM (but AFAIK, they work) - I will replace them with pretty icons shortly.  
+			<br/>
+				<b><i>[-]</i></b> - revert to a fresh attendance list (i.e., clear all of the leading `✔` or `?` characters)<br />
+				<b><i>[x]</i></b> - clear the list of invitees completely (i.e., start with an empty field again)<br />
+				<b><i>[✔]</i></b> - manually trigger an attendance check (in reality, this button is unnecessary because the attendance is checked automatically.  Changing to the People view often will catch any names missed previously (e.g., if they joined the meet before you did)<br />
+				<b><i>[txt]</i></b> - download the attendance list as a text file (see below)<br />
+				<b><i>[▼]</i></b> / <b><i>[▲]</i></b> - show or hide the class name row<br />
+				<b><i>[+]</i></b> - add a new named class  (see below)<br />
+				<b><i>[*]</i></b> - delete a named class  (also see below)<br />
+			<br/>
+			<li>By default, in addition to saving the attendance to a text file (see below), the contents of the Class List filed is saved to a `LocalStorage` variable so that it is remembered if you reload the page.  A localStorage variable is like a web `cookie` but with much more functionality.
+		</ul>
+		<h3>Saving Attendance</h3>
+		<p>At this point, this extension is *not* integrated with Google Sheets... however, that will change as soon as I can get to it.</p>
+		<p>In the meantime, you can click the `[txt]` button to download the attendance as a text file.  The file name, by default, will be <i>`Class List (&lt;yyyy-mm-dd&gt;).txt`</i>.		
+		</p>In addition, you can define what I call `named classes` if your school board allows your browser to keep localStorage variables (my board, the OCDSB, does not).  With a named class, when you  click `[txt]`, the filename will be <i>`&lt;class name&gt; (&lt;yyyy-mm-dd&gt;).txt`</i>.</p>
+		<p><b>CAVEAT</b> - before investing a lot of time defining `named classes`, I strongly recommend that you make sure that your localStorage variables survive a restart of Google Chrome.  By design, they should but some school boards - e.g., the OCDSB - purges them when you exit Chrome.  To test this, enter some text into the Class List field and then close *all* of your Chrome windows.  Then re-launch Chrome and return to https://meet.google.com/, if the text that you entered re-appears, it probably means that your localStorage variables are working properly.  If the field is empty, they're not working as intended (and you'll have to wait for me to integrate with Google Sheets).</p>
+		<p>To add a <b>`named class`</b>:</p>
+		<ul>
+			<li>Click `Class List`, choose `Add` and enter the name of the class into the field - e.g., `MPM2D-07` or whatever you want
+			<li>Then click the `[+]` button, and
+			<li>Finally, enter the list of names for that class
+		<p>The new class will be added to the drop down below `Class List`.  When you change classes in the drop down, the entries in the Class List field will be updated automatically.</p>
+		</ul>
+		<p>To delete a <b>`named class`</b>:</p>
+		<ul>
+			<li>click the `[▼]` button to display the class name line
+			<li>Then click the `[*]` button, and
+			<li>Finally, click `OK` in the confirmation dialog
+		</ul>
+
+		<hr />
+		<h3>Other Links</h3>
+		<ul>
+			<li>I will post updates to the <a href="https://www.facebook.com/GoogleMeetAttendance/" target="_blank" title='See all of the code here...' >Google Meet Attendance FaceBook</a> page
+			<li>If you're a code-geek, you can see the source code at the <a href="https://github.com/al-caughey/Google-Meet-Attendance/" target="_blank" title='See all of the code here...' >GitHub Repository</a> 
+			<li>To provide constructive feedback, click <a href="https://github.com/al-caughey/Google-Meet-Attendance/issues" target="_blank" title='Report issues / send kudos...'>this link</a> and then click the green `New Issue` button.  Please provide as much info as possible (screenshots usually really help).  If there are `bad` entries in your list of attendees, paste or attach that to the issue as well.
+			<li>I've kept the privacy and license details very short: <a href="https://github.com/al-caughey/Google-Meet-Attendance/blob/master/LICENSE.md" target="_blank" title=''>Privacy & License</a>
+		</ul>
+		<p>Thanks!  I hope this helps!  Stay happy, safe and sane.<br/><br/>
+		Al Caughey<br/>
+		Math & Computer teacher<br/>
+		South Carleton HS (OCDSB)<br/>
+		Richmond ON<br/>
+		allan.caughey@ocdsb.ca or al@caughey.ca</p>
+	
+	</body>
+</html>

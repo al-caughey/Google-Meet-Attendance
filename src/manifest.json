@@ -2,7 +2,7 @@
     "name": "Google Meet Attendance",
     "description": "A simple(r) way to record who attended a Google Meet session",
     "permissions": ["storage", "tabs" ],
-    "version": "0.2.6",
+    "version": "0.3.1",
 	"author": "Al Caughey",
 	"homepage_url": "https://github.com/al-caughey/Google-Meet-Attendance",
     "content_scripts": [
