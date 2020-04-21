@@ -19,7 +19,7 @@
 // v0.2.6 - tweaks to regex to gather names; initial localization: en, fr, de & nl
 // v0.2.7 - added link to uninstall questionaire
 // v0.3.0 - downloads the attendance as a text file; added help page
-// v0.3.1 - added warning for unsaved changes; added Italian; fixed double name issue; change file export to csv (tab delimited)
+// v0.3.1 - added warning for unsaved changes; added Italian; fixed double name issue; change file export to csv (tab delimited) 
 
 ;(function() {
 	
