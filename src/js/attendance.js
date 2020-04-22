@@ -36,7 +36,7 @@
 		de:{ presenting:"präsentation", presentation:"bildschirm", you:"ich", joined:"nimmt teil", more:"and \d* more"},
 		nl:{ presenting:"presentatie", presentation:"presenteert", you:"jij", joined:"neemt nu deel", more:"and \d* more"},
 		br:{ presenting:"apresentando", presentation:"apresentação", you:"you", joined:"joined", more:"and \d* more"},
-		it:{ presenting:"presentando", presentation:"presentazione", you:"tu", joined:"sta partecipando", more:"and \d* more"},
+		it:{ presenting:"presentando", presentation:"presentazione", you:"tu", joined:"(sta|stanno) partecipando", more:"e altri \d*"},
 	}
 	
 	// return strings based on language
