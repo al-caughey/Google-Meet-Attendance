@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Meet Grid View & Attendance
 // @namespace    https://openuserjs.org/users/Al_Caughey
-// @version      0.3.1
+// @version      0.3.2
 // @description  registers whether or not invitees actually joined a Meet
 // @author       Al Caughey
 // @include      https://meet.google.com/*
@@ -20,6 +20,7 @@
 // v0.2.7 - added link to uninstall questionaire
 // v0.3.0 - downloads the attendance as a text file; added help page
 // v0.3.1 - added warning for unsaved changes; added Italian; fixed double name issue; change file export to csv (tab delimited) 
+// v0.3.2 - cleaning up spurious entries; updated regexs to clean up innerText; tweaks to CSS; removed tabs from permissions
 
 ;(function() {
 	
@@ -30,12 +31,12 @@
 	//br-->presenting: apresentando | presentation: Apresentação 
 	//fr-->presenting: présentez | presentation: Présentation  
 	const translations={
-		en:{ presenting:"presenting", presentation:"presentation", you:"you", joined:"joined"},
-		fr:{ presenting:"présentez", presentation:"présentation", you:"vous", joined:"participe à l'appel."},
-		de:{ presenting:"präsentation", presentation:"bildschirm", you:"ich", joined:"nimmt teil"},
-		nl:{ presenting:"presentatie", presentation:"presenteert", you:"jij", joined:"neemt nu deel"},
-		br:{ presenting:"apresentando", presentation:"apresentação", you:"you", joined:"joined"},
-		it:{ presenting:"presentando", presentation:"presentazione", you:"tu", joined:"sta partecipando"},
+		en:{ presenting:"presenting", presentation:"presentation", you:"you", joined:"joined", more:"and \d* more"},
+		fr:{ presenting:"présentez", presentation:"présentation", you:"vous", joined:"participe à l'appel.", more:"and \d* more"},
+		de:{ presenting:"präsentation", presentation:"bildschirm", you:"ich", joined:"nimmt teil", more:"and \d* more"},
+		nl:{ presenting:"presentatie", presentation:"presenteert", you:"jij", joined:"neemt nu deel", more:"and \d* more"},
+		br:{ presenting:"apresentando", presentation:"apresentação", you:"you", joined:"joined", more:"and \d* more"},
+		it:{ presenting:"presentando", presentation:"presentazione", you:"tu", joined:"sta partecipando", more:"and \d* more"},
 	}
 	
 	// return strings based on language
@@ -145,10 +146,10 @@
 		document.getElementById('cl-hdr').value='null'
 		document.getElementById('Invited-List').value=''
 		document.getElementById('class-delete').style.visibility='hidden'
-		document.getElementById('class-save').style.visibility='hidden'
 		changeClass()
 		saveHide()
-		//to-do: delete the select/option entry too
+		document.getElementById('class-save').style.visibility='hidden'
+		old_np=0 
 	}
 	// pick new class from drop-down
 	function changeClass(){
@@ -173,7 +174,7 @@
 		else
 			document.getElementById('Attendance-div').classList.remove('empty')
 		document.getElementById('save-text').style.visibility='hidden'
-
+		old_np=0 
 	}
 	// called when add is selected from the drop-down
 	function addClassInfo(){
@@ -237,13 +238,15 @@
 		let ct=document.getElementById('Invited-List').value.trim().replace(duplicatedLines, "$1")
 		if(ct===''){
 			document.getElementById('Attendance-div').classList.add('empty')
+			document.getElementById('save-text').style.visibility='hidden'
 		}
 		else{
 			document.getElementById('Invited-List').value=ct
 			document.getElementById('Attendance-div').classList.remove('empty')
+			document.getElementById('save-text').style.visibility='visible'
 		}
 		localStorage.setItem('__Class-'+currentClassCode,ct)
-		document.getElementById('save-text').style.visibility='visible'
+		old_np=0 
 	}
 
 	// remove all preceding ✔|? from the list of names in the textarea
@@ -255,6 +258,7 @@
 		let ct=invitees.value.replace(/[✔\?] /g,'')
 		invitees.value=ct
 		localStorage.setItem('__Class-'+currentClassCode,ct)
+		old_np=0 
 	}
 
 	// clear the textarea
@@ -265,6 +269,8 @@
 		document.getElementById("Invited-List").value='';
 		localStorage.setItem('__Class-'+currentClassCode,'')
 		document.getElementById("Attendance-div").classList.add('empty')
+		old_np=0 
+		document.getElementById('save-text').style.visibility='hidden'
   	}
 
 	// update the attendance status of the invitees
@@ -287,12 +293,18 @@
 		let tallc=tal.toLowerCase()
 		let changed=false
 		for (let aa of participants){
-			let pn=aa.innerText
-			.replace(re_you,'')
-			.replace(re_joined,'')
+			let pn=aa.innerHTML.replace(/<[^>]*?>/ig,'\n').replace(/\n\n*/gm,'\n')
+			.replace(re_replace,'')
 			.replace(/\(.*\)/ig,'')
 			.replace(duplicatedLines, "$1")
-			.trim()
+			.trim() 
+			//let pn=aa.innerHTML.replace(/<[^>]*?>/ig,'\n').replace(/\n\n*/gm,'\n')
+			//.replace(re_you,'')
+			//.replace(re_joined,'')
+			//.replace(re_more,'')
+			//.replace(/\(.*\)/ig,'')
+			//.replace(duplicatedLines, "$1")
+			//.trim()
 			
 			if(pn==='')	continue
 			let lc=pn.toLowerCase()
@@ -352,6 +364,7 @@
 	if (document.getElementById('cl-hdr').value==''||document.getElementById('cl-hdr').value=='null') document.getElementById('class-edit').style.display='none'
 	document.getElementById('class-hide').style.display='none'
 	document.getElementById('class-save').style.visibility='hidden'
+	document.getElementById('cl-chk').style.visibility='hidden'
 	document.getElementById('class-delete').style.visibility='hidden'
 	document.getElementById('save-text').style.visibility='hidden'
 	loadClassNames()
@@ -359,15 +372,13 @@
 	//set the behaviours
 	// warn about unsave changes
 	window.addEventListener("beforeunload", function (e) {
-		if(document.getElementById("save-text").style.visibility==='hidden')return undefined
-
-
+		if(document.getElementById("save-text").style.visibility==='hidden') return undefined
 		let alrt = 'It looks like you have unsaved Attendance changes!'
-								+ 'If you leave before clicking `[txt`, your attendance may be lost.';
-
-		(e || window.event).returnValue = alrt; //Gecko + IE
-		return alrt; //Gecko + Webkit, Safari, Chrome etc.
+								+ 'If you leave before clicking `[txt]`, your attendance may be lost.';
+		(e || window.event).returnValue = alrt; 
+		return alrt; 
 	});
+	
 	$('#Attendance-div').draggable() // so it can be moved about on the screen
 	$('#Invited-List').change(listChanged) // if the user edits the field
 	$('#class-name').change(classInfoChanged) // when a named class name is changed
@@ -380,9 +391,9 @@
 	$('#class-show').click(saveShow)	// show the row with the class name field
 	$('#class-hide').click(saveHide)	// hide the row 
 	$('#save-text').click(saveTextFile)	// save the class list field to a textfile
+	
 	//create regexes before going into the observer
-	let re_you = new RegExp('\\b'+strings.you+'\\b', "gi");
-	let re_joined = new RegExp('\\b'+strings.joined, "gi");
+	let re_replace = new RegExp('\\b'+strings.you+'|'+strings.joined+'|'+strings.more+'\\b', "gi");
 	let duplicatedLines = /^(.*)(\r?\n\1)+$/gm
 
 	// Create an observer instance to look for changes on the page (detect new participants)
@@ -390,18 +401,13 @@
 		
 		checkParticipants()
 		
-		/* for experimentation...
-		for(let mutation of mutations) {
-			for(let node of mutation.addedNodes) {
-				if(!node.innerText||node.innerText==='') continue
-				console.log(mutation.type, node.innerText, node )
-				}
-			}
-		}*/
+		
 	});
-	
-	//wait until the DOM element holding the participant info is available
+
 	waitForElement("[data-allocation-index]",function(){
+		document.getElementById('cl-chk').style.visibility='visible'
+		document.getElementById("Attendance-div").classList.add('in-meeting')
+
 		let ct=document.getElementById('Invited-List').value.trim()
 		if(ct!==''){
 			document.getElementById("Attendance-div").classList.remove('empty')
@@ -411,27 +417,14 @@
 		// watch for changes (adding new participants to the Meet)
 		observer.observe(document.body, {childList:true, attributes:false, subtree:true, characterData:false});
 	});
+	//wait until the meeting is done
+	waitForElement('[data-call-ended="true"]',function(){
+		let a_div=document.getElementById("Attendance-div")
+		a_div.style=''
+		a_div.classList.remove('in-meeting')
+		a_div.classList.add('meeting-over')
+		document.getElementById('cl-chk').style.visibility='hidden'
+		document.getElementById('save-text').style.visibility='visible'
+	});
 
 })()
-
-	/* possible replacement to draggable
-	
-	let spos=[],mpos=[];
-	document.getElementById('Attendance-div').addEventListener('mousedown', function(e) {
-	spos.x = this.offsetLeft;
-	spos.y = this.offsetTop;
-	mpos.x = e.clientX;
-	mpos.y = e.clientY;
-
-	this.addEventListener('mousemove', newPosition, false);
-
-	window.addEventListener('mouseup', function() {
-	  document.getElementById('Attendance-div').removeEventListener('mousemove', newPosition, false);
-	}, false);
-
-	}, false);
-
-	function newPosition(e) {
-		this.style.left = spos.x + e.clientX - mpos.x + 'px';
-		this.style.top = spos.y + e.clientY - mpos.y + 'px';
-	}*/

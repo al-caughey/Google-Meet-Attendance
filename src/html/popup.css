@@ -1,12 +1,5 @@
-body.no-meeting p {
-	display:none;
-}
-body.no-meeting #not-running {
-	display:block;
-	font-style:italic;
-}
-body #not-running{
-	display:none;
+body{
+	white-space: nowrap;
 }
 h3 {
     white-space: nowrap;
@@ -16,5 +9,12 @@ p, h3 {
 	padding: 0;
 }
 a {
+	opacity:.75;
 	white-space: nowrap;
+}
+a:hover {
+	opacity:1;
+ }
+#only_gm{
+	font-style:italic;
 }

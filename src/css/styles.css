@@ -1,25 +1,42 @@
 #Attendance-div{
-	opacity:0.3;
 	left:0;
 	position:absolute;
 	top: 88px;
 	z-index:99;
 }
+#Attendance-div.in-meeting{
+	opacity:0.3;
+}
 #Attendance-div p{
 	background:red;
-	border-radius: 4px 0 0 0 ;
 	color:#EEE;
+    cursor: move;
 	font-weight:bold;
 	margin:0;
 	padding:0 0 0 4px;
 }
-#Attendance-div p span{
+#Attendance-div p:first-of-type{
+	border-radius: 8px 8px 0 0;
+}
+#save-text{
+	color:#EEE;
+	text-decoration:none;
+}
+#Attendance-div p span, #save-text{
 	cursor: pointer;
 	margin: 0 4px;
 	opacity: .75;
 }
+#Attendance-div p span:hover, #save-text:hover{
+	opacity: 1;
+}
+#Attendance-div p span:active, #save-text:active {
+    opacity: .333;
+}
 #cl-hdr{
 	background:transparent;
+	border: 0;
+    cursor: pointer;
 }
 #class-code {
     display: none;
@@ -28,22 +45,34 @@
     width: 72px;
 }
 #Invited-List{
-	min-height:unset;
-	white-space: nowrap;
+	//background-color: transparent;
 	width: calc(100% - 6px);
 	min-width: calc(100% - 6px);
 }
-#Attendance-div.empty, #Attendance-div:hover, #Attendance-div p span:hover {
+.in-meeting #Invited-List{
+	min-height:unset;
+	white-space: nowrap;
+}
+#Attendance-div.empty, #Attendance-div:hover{
+	background-color: white;
 	opacity: 1;
 }
-.empty #Invited-List {
+.in-meeting.empty #Invited-List {
 	min-height: 100px;
 	transition: height 1.5s ease-out;
 }
-.empty #cl-clr, .empty #cl-ccl, .empty #cl-chk {
+#Attendance-div.meeting-over  {
+	left: 100px;
+}
+.meeting-over #Invited-List {
+	min-height: 500px;
+	transition: height 1.5s ease-out;
+}
+.empty #cl-clr, .empty #cl-ccl {
 	visibility: hidden;
 }
 #Invited-List:focus {
+	background-color: white;
 	min-height:400px;
 	width: 228px;
 }
