@@ -1,5 +1,7 @@
-# [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd) is now a Chrome extension!
+# [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd) is now a Chrome extension!  
 https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd
+# And also a firefox extension:
+https://addons.mozilla.org/en-US/firefox/addon/google-meet-attendance/
 
 # Introduction and acknowledgements
 
