@@ -12,7 +12,7 @@ It was initially inspired by Chris Gamble's Userscript (https://greasyfork.org/e
 The extension does not require extra permissions other than access to meet.google.com. The list of invitees is retained in a LocalStorage variable but none of that information is transmitted or shared elsewhere by the extension.  All of the source code can be viewed at this [public repository](https://github.com/al-caughey/Google-Meet-Attendance).
 
 # To see the extension in action
-First, install it by going to [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd) at the Chrome web store and clicking `Add to Chrome`
+First, install it by going to [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd) at the Chrome web store and clicking `Add to Chrome` or by going to [Google Meet Attendance](https://addons.mozilla.org/en-US/firefox/addon/google-meet-attendance/) the Firefox Add-ons site and clicking `Add to Firefox` 
 
 Then launch a [Google Meet](https://meet.google.com)
 
