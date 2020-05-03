@@ -1,78 +1,110 @@
-#Attendance-div{
+#attendance-div{
+	border-radius: 8px 8px 0 0;
 	left:0;
 	position:absolute;
 	top: 88px;
-	z-index:99;
+	z-index:1;
 }
-#Attendance-div.in-meeting{
+#attendance-div.in-meeting{
 	opacity:0.3;
 }
-#Attendance-div p{
-	background:red;
-	color:#EEE;
-    cursor: move;
-	font-weight:bold;
-	margin:0;
-	padding:0 0 0 4px;
+#attendance-div-header{
+	background: linear-gradient(#777, #AAA);
+	color: #EEE;
+	cursor: move;
+	font-weight: bold;
+	margin: 0;
+	padding: 0 0 0 4px;
 }
-#Attendance-div p:first-of-type{
+#attendance-div p{
 	border-radius: 8px 8px 0 0;
 }
-#save-text{
-	color:#EEE;
-	text-decoration:none;
+#save-file{
+	color: #EEE;
+	text-decoration: none;
 }
-#Attendance-div p span, #save-text{
-	cursor: pointer;
-	margin: 0 4px;
-	opacity: .75;
-}
-#Attendance-div p span:hover, #save-text:hover{
-	opacity: 1;
-}
-#Attendance-div p span:active, #save-text:active {
-    opacity: .333;
-}
-#cl-hdr{
+#select-class{
 	background:transparent;
 	border: 0;
-    cursor: pointer;
-}
-#class-code {
-    display: none;
+    //cursor: pointer;
 }
 #class-name {
     width: 72px;
 }
-#Invited-List{
-	//background-color: transparent;
+#class-name.add-class::after{
+	content: "Enter new class name"
+}
+#invited-list{
 	width: calc(100% - 6px);
 	min-width: calc(100% - 6px);
 }
-.in-meeting #Invited-List{
+.in-meeting #invited-list{
 	min-height:unset;
-	white-space: nowrap;
 }
-#Attendance-div.empty, #Attendance-div:hover{
+#attendance-div.empty, #attendance-div:hover{
 	background-color: white;
 	opacity: 1;
 }
-.in-meeting.empty #Invited-List {
+.in-meeting.empty #invited-list {
 	min-height: 100px;
 	transition: height 1.5s ease-out;
 }
-#Attendance-div.meeting-over  {
+#attendance-div.meeting-over  {
 	left: 100px;
 }
-.meeting-over #Invited-List {
+.meeting-over #invited-list {
 	min-height: 500px;
 	transition: height 1.5s ease-out;
 }
-.empty #cl-clr, .empty #cl-ccl {
+.empty #clear-attendance-field, .empty #clear-attendance-marks {
 	visibility: hidden;
 }
-#Invited-List:focus {
+#invited-list:focus {
 	background-color: white;
 	min-height:400px;
 	width: 228px;
+}
+#read-file {
+    display: none;
+}
+#class-name{
+	display: none;
+	vertical-align: bottom;
+}
+.btn{
+	cursor: pointer;
+	display: inline-block;
+	height: 22px;
+	margin: 0 4px;
+	vertical-align: text-top;
+	width: 22px;
+}
+.btn:hover{
+	opacity: 1;
+}
+.btn:active {
+    opacity: .333;
+}
+#show-attendance-div{
+    align-items: center;
+	background-color: transparent;
+	border:0;
+    border-radius: 50%;
+    color: #444;
+	display: inline-flex;
+    font-size: 20px;
+	font-weight: bold;
+    height: 60px;
+	opacity: .75;
+    text-indent: 21px;
+    vertical-align: middle;
+    width: 60px;
+}
+#show-attendance-div:hover{
+	background-color: #EEE;
+	color: #666;
+}
+#show-attendance-div.showing{
+	color:green;
+	background-color: silver;
 }

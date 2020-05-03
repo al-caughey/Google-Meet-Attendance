@@ -2,7 +2,7 @@
     "name": "Google Meet Attendance",
     "description": "A simple(r) way to record who attended a Google Meet session",
     "permissions": [ "storage" ],
-    "version": "0.3.2",
+    "version": "0.4.7",
 	"author": "Al Caughey",
     "content_scripts": [
 		{
@@ -13,10 +13,9 @@
 				"css/styles.css"
 			],
 			"js": [
-				"js/jquery-3.5.0.min.js",
-				"js/jquery-ui.min.js",
-				"js/attendance.js"
+				"js/draggable.js", "js/attendance.js"
 			],
+			
 			"run_at": "document_idle",
 			"all_frames": false
 		}
@@ -35,5 +34,8 @@
 		"48": "icons/icon48.png",
 		"128": "icons/icon128.png"
 	},
+	"web_accessible_resources": [
+		"images/*.png"
+	],
     "manifest_version": 2
   }
