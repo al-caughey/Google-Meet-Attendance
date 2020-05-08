@@ -1,5 +1,5 @@
 # Privacy Policy
-[moved to](PRIVACY.md).
+[The privacy policy has been moved to a separate file](PRIVACY.md).
 
 # License
 Copyright (C) 2020 by Al Caughey (al@caughey.ca)
