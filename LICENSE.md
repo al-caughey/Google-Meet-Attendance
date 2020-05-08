@@ -1,7 +1,5 @@
 # Privacy Policy
-In short, this extension does **not** track any user data.  
-If permitted by school/board browser security policies, and the sake of for convenience only, the list of expected attendees are saved to [LocalStorage variables](https://en.wikipedia.org/wiki/Web_storage#localStorage).
-The source code for this extension is provided (subject to the conditions below) to verify this policy.
+[moved to](PRIVACY.md).
 
 # License
 Copyright (C) 2020 by Al Caughey (al@caughey.ca)
