@@ -2,8 +2,13 @@
     "name": "Google Meet Attendance",
     "description": "A simple(r) way to record who attended a Google Meet session",
     "permissions": [ "storage" ],
-    "version": "0.4.7",
+    "manifest_version": 2,
+    "version": "0.5.0",
 	"author": "Al Caughey",
+	"background": {
+		"scripts": ["js/background.js"],
+		"persistent": false
+	},
     "content_scripts": [
 		{
 			"matches": [
@@ -36,6 +41,5 @@
 	},
 	"web_accessible_resources": [
 		"images/*.png"
-	],
-    "manifest_version": 2
+	]
   }

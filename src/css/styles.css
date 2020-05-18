@@ -1,23 +1,22 @@
 #attendance-div{
+	background-color: white;
 	border-radius: 8px 8px 0 0;
 	left:0;
 	position:absolute;
 	top: 88px;
-	z-index:1;
+	z-index:99;
 }
 #attendance-div.in-meeting{
 	opacity:0.3;
 }
 #attendance-div-header{
 	background: linear-gradient(#777, #AAA);
+	border-radius: 8px 8px 0 0;
 	color: #EEE;
 	cursor: move;
 	font-weight: bold;
 	margin: 0;
 	padding: 0 0 0 4px;
-}
-#attendance-div p{
-	border-radius: 8px 8px 0 0;
 }
 #save-file{
 	color: #EEE;
@@ -26,7 +25,12 @@
 #select-class{
 	background:transparent;
 	border: 0;
-    //cursor: pointer;
+	display: inline-block;
+    height: auto;
+    width: 96px;
+}
+#select-class:hover{
+    cursor: pointer;
 }
 #class-name {
     width: 72px;
@@ -42,7 +46,6 @@
 	min-height:unset;
 }
 #attendance-div.empty, #attendance-div:hover{
-	background-color: white;
 	opacity: 1;
 }
 .in-meeting.empty #invited-list {
@@ -59,10 +62,21 @@
 .empty #clear-attendance-field, .empty #clear-attendance-marks {
 	visibility: hidden;
 }
-#invited-list:focus {
+#invited-list::placeholder {
+	color:red;
+	font-size: 20px;
+}
+#invited-list:placeholder-shown, #invited-list:hover:placeholder-shown{
+	height: 510px;
+	width: 510px;
+}
+#invited-list:hover, #invited-list:focus {
 	background-color: white;
 	min-height:400px;
 	width: 228px;
+}
+#invited-list:focus::placeholder {
+  color: transparent;
 }
 #read-file {
     display: none;
@@ -71,40 +85,91 @@
 	display: none;
 	vertical-align: bottom;
 }
-.btn{
+.gma-btn{
 	cursor: pointer;
 	display: inline-block;
 	height: 22px;
 	margin: 0 4px;
+	opacity: .66;
 	vertical-align: text-top;
 	width: 22px;
 }
-.btn:hover{
+.gma-btn:hover{
 	opacity: 1;
+	box-shadow: 0 1px 3px 0 rgba(60,64,67,0.302), 0 4px 8px 3px rgba(60,64,67,0.149);
 }
-.btn:active {
+.gma-btn:active {
     opacity: .333;
 }
 #show-attendance-div{
     align-items: center;
 	background-color: transparent;
-	border:0;
+	border:1px solid #CCC;
     border-radius: 50%;
     color: #444;
 	display: inline-flex;
     font-size: 20px;
 	font-weight: bold;
-    height: 60px;
+    height: 54px;
+	margin: 0 8px;
 	opacity: .75;
-    text-indent: 21px;
+    text-indent: 19px;
     vertical-align: middle;
-    width: 60px;
+    width: 54px;
 }
 #show-attendance-div:hover{
-	background-color: #EEE;
+	background-color: darkseagreen;
+	box-shadow: 0 1px 3px 0 rgba(60,64,67,0.302), 0 4px 8px 3px rgba(60,64,67,0.149);
 	color: #666;
 }
 #show-attendance-div.showing{
 	color:green;
 	background-color: silver;
+}
+#monitor-attendance {
+    height: 15px;
+    width: 15px;
+    vertical-align: bottom;
+}
+#attendance-div-footer{
+	background-color: #ddd;
+	margin: 0px;
+	padding: 0 12px;
+	position:relative;
+}
+#gma-version {
+    font-size: xx-small;
+    font-style: italic;
+    vertical-align: baseline;
+}
+#gma-version:hover{
+	cursor: pointer;
+}
+img#gma-help {
+    position: absolute;
+    right: 12px;
+    top: -4px;
+}
+#update-text {
+    background: #DDD;
+	display: none;
+	height: 510px;
+	overflow: scroll;
+    padding: 8px;
+	width: 510px;
+}
+.help-page{
+	display: none;
+}
+.active-help-page{
+	display: block;
+}
+#help-buttons{
+	background: #DDD;
+	display: none;
+    margin: 0;
+    text-align: center;
+}
+#prev-page, #next-page{
+	display:none;
 }
