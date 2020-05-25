@@ -155,8 +155,11 @@ img#gma-help {
 	display: none;
 	height: 510px;
 	overflow: scroll;
-    padding: 8px;
+    padding: 0 8px;
 	width: 510px;
+}
+#update-text h1{
+	margin: 0px;
 }
 .help-page{
 	display: none;
@@ -168,8 +171,30 @@ img#gma-help {
 	background: #DDD;
 	display: none;
     margin: 0;
+	padding: 2px;
     text-align: center;
 }
+#help-buttons-span {
+    border: 1px solid green;
+    border-radius: 8px;
+    display: inline-block;
+    padding: 1px;
+    width: 128px;
+}
 #prev-page, #next-page{
+	visibility: hidden;
+}
+#meeting-started-div{
 	display:none;
+}
+.current-start-time{
+	font-weight: bold;
+	font-style: italic;
+}
+.help-footer{
+    border-top: 1px solid #888;
+	font-size: smaller;
+    font-style: italic;
+    padding-top: 12px;
+    text-align: center;
 }
