@@ -35,7 +35,7 @@
 		fr:{ presenting:"présentez", presentation:"présentation", you:"vous", joined:"participe à l'appel.", more:"and \d* more"},
 		de:{ presenting:"präsentation", presentation:"bildschirm", you:"ich", joined:"nimmt teil", more:"and \d* more"},
 		nl:{ presenting:"presentatie", presentation:"presenteert", you:"jij", joined:"neemt nu deel", more:"and \d* more"},
-		br:{ presenting:"apresentando", presentation:"apresentação", you:"you", joined:"joined", more:"and \d* more"},
+		pt:{ presenting:"apresentando", presentation:"apresentação", you:"você", joined:"participando", more:"está participando"},
 		it:{ presenting:"presentando", presentation:"presentazione", you:"tu", joined:"sta partecipando", more:"and \d* more"},
 	}
 	
