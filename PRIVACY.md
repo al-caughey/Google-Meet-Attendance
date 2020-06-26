@@ -5,3 +5,4 @@ The extension has been updated to leverage the [Chrome 'sync'](https://developer
 
 The source code for this extension is provided to verify this policy - see [Licence](LICENSE.md).
 
+Contact me at al[at]caughey[dot]ca if you have further questions.
