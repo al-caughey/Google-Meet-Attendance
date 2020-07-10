@@ -1,22 +1,27 @@
-#attendance-div{
-	background-color: white;
-	border-radius: 8px 8px 0 0;
-	left:0;
+#gma-attendance-fields{
+	background: linear-gradient(#888, #DDD);
+	border-left: 1px solid #CCC;
+	border-right: 1px solid #CCC;
+	border-radius: 12px 12px 0 0;
+	left:18px;
 	position:absolute;
 	top: 88px;
 	z-index:99;
 }
-#attendance-div.in-meeting{
+#gma-attendance-fields.in-meeting{
 	opacity:0.3;
 }
-#attendance-div-header{
-	background: linear-gradient(#777, #AAA);
-	border-radius: 8px 8px 0 0;
+.gma-header {
+	background: linear-gradient(#888, #aaa);
+	border-radius: 12px 12px 0 0;
 	color: #EEE;
 	cursor: move;
 	font-weight: bold;
+	height: 22px;
 	margin: 0;
-	padding: 0 0 0 4px;
+	padding: 4px 0 0 8px;
+	position: relative;	
+	//width: 500px;
 }
 #save-file{
 	color: #EEE;
@@ -27,7 +32,11 @@
 	border: 0;
 	display: inline-block;
     height: auto;
-    width: 96px;
+    padding: 0;
+	width: auto;
+}
+#select-class option{
+	color: unset;
 }
 #select-class:hover{
     cursor: pointer;
@@ -39,20 +48,22 @@
 	content: "Enter new class name"
 }
 #invited-list{
-	width: calc(100% - 6px);
+	border: 0px;
 	min-width: calc(100% - 6px);
+	overflow-y: scroll;
+	width: calc(100% - 6px);
 }
 .in-meeting #invited-list{
 	min-height:unset;
 }
-#attendance-div.empty, #attendance-div:hover{
+#gma-attendance-fields.empty, #gma-attendance-fields:hover{
 	opacity: 1;
 }
 .in-meeting.empty #invited-list {
 	min-height: 100px;
 	transition: height 1.5s ease-out;
 }
-#attendance-div.meeting-over  {
+#gma-attendance-fields.meeting-over  {
 	left: 100px;
 }
 .meeting-over #invited-list {
@@ -64,15 +75,11 @@
 }
 #invited-list::placeholder {
 	color:red;
-	font-size: 20px;
+	font-size: 14px;
 }
-#invited-list:placeholder-shown, #invited-list:hover:placeholder-shown{
-	height: 510px;
-	width: 510px;
-}
-#invited-list:hover, #invited-list:focus {
+#invited-list:focus {
 	background-color: white;
-	min-height:400px;
+	height:400px;
 	width: 228px;
 }
 #invited-list:focus::placeholder {
@@ -94,14 +101,21 @@
 	vertical-align: text-top;
 	width: 22px;
 }
+.gma-video-link{
+	opacity: .66;
+}
+.gma-video-link:hover{
+	text-decoration: underline;
+	opacity: 1;
+}
 .gma-btn:hover{
 	opacity: 1;
 	box-shadow: 0 1px 3px 0 rgba(60,64,67,0.302), 0 4px 8px 3px rgba(60,64,67,0.149);
 }
-.gma-btn:active {
+.gma-btn:active, .gma-video-link:active {
     opacity: .333;
 }
-#show-attendance-div{
+#show-gma-attendance-fields{
     align-items: center;
 	background-color: transparent;
 	border:1px solid #CCC;
@@ -117,69 +131,74 @@
     vertical-align: middle;
     width: 54px;
 }
-#show-attendance-div:hover{
+#show-gma-attendance-fields:hover{
 	background-color: darkseagreen;
 	box-shadow: 0 1px 3px 0 rgba(60,64,67,0.302), 0 4px 8px 3px rgba(60,64,67,0.149);
 	color: #666;
+	cursor: pointer;
 }
-#show-attendance-div.showing{
+#show-gma-attendance-fields.showing{
 	color:green;
 	background-color: silver;
 }
 #monitor-attendance {
     height: 15px;
+    opacity: unset;
+	pointer-events: unset;
+    position: unset;
+    vertical-align: middle;
     width: 15px;
-    vertical-align: bottom;
 }
-#attendance-div-footer{
-	background-color: #ddd;
+#gma-footer{
+    background: linear-gradient(#DDD, #999);
 	margin: 0px;
+	line-height: 20px;
 	padding: 0 12px;
-	position:relative;
+	position: relative;
 }
 #gma-version {
     font-size: xx-small;
     font-style: italic;
+	font-weight: bold;
     vertical-align: baseline;
 }
 #gma-version:hover{
 	cursor: pointer;
 }
-img#gma-help {
+#gma-help, #close-settings, #close-help {
     position: absolute;
     right: 12px;
-    top: -4px;
+    top: 0px;
 }
-#update-text {
-    background: #DDD;
+#gma-settings {
+    position: absolute;
+    right: 42px;
+    top: 0px;
+}
+#gma-messages-div {
+	border-radius: 0px 0px 8px 8px;
 	display: none;
-	height: 510px;
-	overflow: scroll;
-    padding: 0 8px;
-	width: 510px;
+	width: 500px;
 }
-#update-text h1{
+#messages-div-body {
+	max-height: 400px;
+	overflow-y: scroll;
+}
+#gma-messages-div h1, #gma-messages-div h2{
 	margin: 0px;
 }
-.help-page{
-	display: none;
+#messages-div-body{
+	background: linear-gradient(#DDD, #CCC);
+	margin: 0;
+	overflow-y: scroll;
+	padding: 0 12px;
 }
-.active-help-page{
-	display: block;
-}
-#help-buttons{
-	background: #DDD;
-	display: none;
+#messages-div-title{
+	background: linear-gradient(#AAA, #DDD);
+	display:flex;
     margin: 0;
 	padding: 2px;
     text-align: center;
-}
-#help-buttons-span {
-    border: 1px solid green;
-    border-radius: 8px;
-    display: inline-block;
-    padding: 1px;
-    width: 128px;
 }
 #prev-page, #next-page{
 	visibility: hidden;
@@ -195,6 +214,147 @@ img#gma-help {
     border-top: 1px solid #888;
 	font-size: smaller;
     font-style: italic;
+	margin: 0;
+    padding-bottom: 8px;
     padding-top: 12px;
     text-align: center;
+}
+div#gma-attendance-fields-body {
+    position: relative;
+}
+.in-meeting #p-attendance-summary, .meeting-over #p-attendance-summary {
+	display: block;
+}
+.in-meeting [showing="settings"] label {
+    cursor: wait;
+	pointer-events: none;
+}
+[showing="settings"] #help-page-footer {
+	display: none;
+}
+.in-meeting [showing="settings"] #help-page-footer {
+	display: block;
+}
+#p-attendance-summary {
+    background: linear-gradient(#AAA, #888);
+    border: 1px solid #777;
+	border-top: 0px;
+	display: none;
+    border-radius: 0 0 8px 8px;
+    font-size: 10px;
+    margin: 0px;
+    padding: 2px 6px 1px 6px;
+	position: absolute;
+    right: 11px;
+	text-align:right;
+    top: 26px;
+	z-index: 3;
+}
+#attendance-summary, #sp-start-time{
+	display: block;
+}
+.updated .important-msg {
+    background-color: #efd567;
+	font-weight: bold;
+}
+.important-msg:before {
+    content: '***';
+	margin-right: 6px;
+}
+
+.updated #gma-version:before {
+    content: 'New';
+	background-color: #efd567;
+    border: 1px solid red;
+    border-radius: 50%;
+    margin-right: 6px;
+    padding: 2px 6px;
+}
+.updated #gma-version{
+	color:red;
+}
+
+#sp-start-time:before {
+    content: 'Start: ';
+}
+.monitoring-active #sp-duration:before {
+    content: "✔  Duration: ";
+    color: unset;
+    font-weight: normal;
+}
+#sp-duration:before {
+    content: "* Duration: ";
+    color: red;
+    font-weight: bold;
+}
+#sp-duration:after {
+    content: 'min';
+}
+#gma-class-list-header, #gma-settings-header, #gma-add-class{
+	width: 336px;
+}
+#add-class, #cancel-add{
+	display:none;
+}
+#cancel-add{
+	display:none;
+}
+#add-class-message{
+	background-color: lightyellow;
+	display:none;
+	margin:0;
+	padding: 1px 8px;
+}
+#gma-add-class{
+	display: none;
+}
+.warning{
+	background-color: lightyellow;
+    border-radius: 4px;
+	font-weight: bold;
+	padding: 2px 4px;
+}
+.bold{
+    background-color: #ffdd00!important;
+	border: 2px solid darkred;
+	color: darkred;
+	font-weight: bold;
+}
+.nav-btn {
+    border: 2px solid gray;
+    border-radius: 50%;
+    display: inline-block;
+    font-size: 13px;
+    font-weight: bold;
+    height: 12px;
+    padding-bottom: 2px;
+    text-align: center;
+    width: 12px;
+}
+[auto-hide-count-down="0"] #auto-hide-text {
+    display: none;
+}
+li.warning p {
+    margin: auto;
+    font-weight: normal;
+}
+#current-start-time, #current-time {
+    font-weight: bold;
+    color: darkblue;
+}
+#help-page-body p{
+	margin: 6px 0;
+}
+.settings-label{
+	display: block;
+	cursor: pointer;
+}
+.settings-label input{
+	margin-left: 8px;
+}
+#auto-hide-updates {
+    width: 32px;
+}
+#auto-hide-updates-label::after {
+    content: ' seconds';	
 }

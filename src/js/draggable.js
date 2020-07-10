@@ -30,12 +30,16 @@ function dragElement(elmnt) {
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+
+    elmnt.style.top = Math.max(0, elmnt.offsetTop - pos2) + "px"
+    elmnt.style.left = Math.max(0, elmnt.offsetLeft - pos1) + "px"
+	
   }
 
   function closeDragElement() {
-    // stop moving when mouse button is released:
+    // stop moving when mouse button is released
+	let ads=document.getElementById("gma-attendance-fields").style
+	chrome.storage.sync.set({"draggable-top":ads.top, "draggable-left":ads.left},null)
     document.onmouseup = null;
     document.onmousemove = null;
   }

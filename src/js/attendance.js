@@ -2,6 +2,7 @@
 // @include      https://meet.google.com/*
 // @license      https://github.com/al-caughey/Google-Meet-Attendance/blob/master/LICENSE.md
 // @run-at       document-idle
+// 				 Please send feedback to allan.caughey@ocdsb.ca
 
 // History:
 // v0.2.1 - first post publish Chrome store; improvements to styleSheets
@@ -28,11 +29,24 @@
 // v0.5.3 - do not add/show the Attendance fields until the video tag has been added; do not call wait4element until it makes sense (and lengthened delay between calls for end of meeting); refactored translations (pulled out hide and more because they were not language specific); added to `es` for joined
 // v0.5.4 - added translations.js; moved strings there; renamed translations meetUIStrings; added dropDownStrings
 // v0.5.5 - minor manifest change for Firefox
-// v0.5.6 - minor manifest change for Firefox
+// v0.6.0 - persisted attendance; fixed double counting in _arrivalTimes; HTML report;
+// v0.6.1 - added # of participants
+// v0.6.2 - reverted checking in checkparticipants; added a dropdown under the date in the HTML reports (so that you can quickly navigate to past attendance checks)
+// v0.6.3 - added hover text to html template for name; widened name column; added chinese localization; added timeout to update dialog; fixed startup race condition (if you clicked join before the attendance fields were showing); fixed bug if HTML reports were generated before the meeting was ended
+// v0.6.4 - minor CSS change to fix CSS error caused by another attendance extension
+// v0.6.5 - added Settings tab; added charset to HTML report template
+
+// *** for the list of changes in v0.7+, see updateSummary in updates.js
 
 ;(function() {	
-	// Please send feedback to allan.caughey@ocdsb.ca
-
+	// Show storage contents
+	/*chrome.storage.sync.get( null, function(r) {
+		for (var key in r){
+			console.log( key, r[key] )
+		}
+	})*/
+	//chrome.storage.sync.remove(['monitor-attendance'])
+	
 	// placeholder callback function for get.storage.sync.set... does nothing
 	function callBackSet(){
 		//console.log('data was saved', chrome.storage.sync)
@@ -49,7 +63,6 @@
 		currentClassCode = currentClassCode.replace(/ /g,'-')
 		chrome.storage.sync.set({'Current-Class-Code':currentClassCode}, callBackSet )
 		function saveLS2Sync(oc, ocn) {
-			//console.log('saveLS2Sync')
 			chrome.storage.sync.get(['__Class-'+oc], function (r){
 				if(!r['__Class-'+oc]){
 					let ccc={}
@@ -92,8 +105,7 @@
 					ci[oc] = oc
 				}
 				let ocn=localStorage.getItem('__Class-'+oc)
-				saveLS2Sync(oc, ocn)
-				
+				saveLS2Sync(oc, ocn)	
 			}
 			localStorage.removeItem('__Class-Info')
 			chrome.storage.sync.set({'__Class-Info':JSON.stringify(ci)}, callBackSet )
@@ -103,48 +115,50 @@
 	})
 
 	// cursory localization
-	let uiStrings = getMeetUIStrings()
 	let old_np = 0
-	// create regexes
-	//let re_replace = new RegExp('\\b'+uiStrings.you+'\n|\\b'+uiStrings.joined+'\\b|\\b'+uiStrings.more+'\\b', "gi");
-	let re_replace = new RegExp('\\b'+uiStrings.you+'\n|\\b'+uiStrings.joined+'\\b|\\b'+uiStrings.more+'\\b|'+uiStrings.hide, "gi");
-	//console.log(re_replace)
-	let duplicatedLines = /^(.*)(\r?\n\1)+$/gm
-
-
+	let updateDialogTimeout=null
+	let ddStrings = getDropDownStrings()
+	let _activeMeetID
+	
 	// simple function that waits until a specific element exists in the DOM...
 	// (adapted from Stack Overflow
 	function waitForElement(elementPath, callBack){
 		//console.log("Waiting for: " + elementPath)
 		
 		let waitfor=elementPath==='[data-call-ended = "true"]'?10000:1000
+		//let maxWait=waitfor==1000?10:null
 		
 		window.setTimeout(function(){
+			//console.log('numChecks: '+numChecks)
 			let itExists = document.querySelector(elementPath)
-			if(!itExists ||itExists.length === 0){
+			//if( numChecks < maxWait && (!itExists || itExists.length === 0)) {
+			if( !itExists || itExists.length === 0 ) {
+				//numChecks++
 				waitForElement(elementPath, callBack);
 			}
 			else{
+				numChecks=null
 				callBack(elementPath, itExists);
 			}
 		},waitfor)
 	}
 	// build the select/options for the list of classes
-	function setClassList(p){
-		function addOption(pe,t,v){
+	function setClassList( p ){
+		function addOption( pe, t, v, tt ){
 			let o = document.createElement('option')
 			o.innerText = t
 			o.value = v.replace(/ /g,'-')
-			if (v === '') o.disabled = 'disabled'
-			pe.appendChild(o)
+			if ( v === '' ) o.disabled = 'disabled'
+			if ( !!tt ) o.title = tt
+			pe.appendChild( o )
 		}
 		//console.log('setClassList')
-		let ddStrings = getDropDownStrings()
-
+		
 		let mpe = document.getElementById(p)
-		addOption(mpe, ddStrings.classList, 'Class-List')
+		addOption(mpe, ddStrings.classList, 'Class-List', 'A generic class list')
 		let mog = document.createElement('optgroup')
 		mog.setAttribute("label", ddStrings.myClasses)
+		mog.setAttribute("id", 'named-classes')
 		chrome.storage.sync.get(['__Class-Info'], function (r) {
 			let cls = r['__Class-Info']
 			//console.log('__Class-Info',cls)
@@ -156,8 +170,9 @@
 			mpe.appendChild(mog)
 			let og = document.createElement('optgroup')
 			og.setAttribute("label", ddStrings.otherOptions)
-			addOption(og, ddStrings.add,'+')
-			addOption(og, ddStrings.reset,'-')
+			
+			addOption(og, ddStrings.add,'+', 'Add a named class')
+			addOption(og, ddStrings.reset,'-', 'Remove all of your named classes')
 			mpe.appendChild(og)
 		})
 	}
@@ -173,12 +188,13 @@
 				let currentClassCode = r['Current-Class-Code']
 				let fc = e.target.result.replace( /^\s*([✔\?] )*\s*/gm,'')
 				document.getElementById('invited-list').value = fc
-				document.getElementById('attendance-div').classList.remove('empty')
+				document.getElementById('gma-attendance-fields').classList.remove('empty')
 				let ccn={}
 				ccn['__Class-'+currentClassCode]=fc
 				chrome.storage.sync.set(ccn, callBackSet )
 			})
 		};
+		write2log('Read class list from  ' + fn )
 		reader.readAsText(fn);
 		document.getElementById('read-file').value = '' // so that it changes next click
 	}
@@ -193,49 +209,90 @@
 		let header = '\ufeff'+'Attendance for: '+cn+' on '+cdate+'\n\n'+'Names'+'\t'+cdate+' '+sessionStorage.getItem('Meeting-start-time')+'\t'+'Arrival time'+'\n'
 		let joined = /^\s*([✔\?])(\s*)(.*)$/gm
 		let txt = document.getElementById('invited-list').value.replace(joined, "$3"+'\t'+"$1")
-		let checked = document.getElementById("monitor-attendance").checked
+		chrome.storage.sync.get(['monitor-attendance'], function(r){
+			let checked = r['monitor-attendance']
 
-		for (let nn in _arrivalTimes){
-			let re_name = new RegExp('('+nn+'.*)', 'i')
-			if (checked)
-				txt = txt.replace(re_name, '$1'+'\t'+_arrivalTimes[nn].arrived +' ('+_arrivalTimes[nn].stayed+')')
-			else
-				txt = txt.replace(re_name, '$1'+'\t'+_arrivalTimes[nn].arrived)
-		}
-		let blob = new Blob([header+txt], {type: 'text/plain;charset = utf-8'})
-		let temp_a = document.createElement("a")
-    	temp_a.download = cn+' ('+cdate+').csv'
-		temp_a.href = window.webkitURL.createObjectURL(blob)
-		temp_a.click()
+			for (let pid in _arrivalTimes){
+				let re_name = new RegExp('('+_arrivalTimes[pid].name+'.*)', 'i')
+				if (checked)
+					txt = txt.replace(re_name, '$1'+'\t'+_arrivalTimes[pid].arrived +' ('+_arrivalTimes[pid].stayed+'min) ['+_arrivalTimes[pid].last_seen+']')
+				else
+					txt = txt.replace(re_name, '$1'+'\t'+_arrivalTimes[pid].arrived)
+			}
+			let blob = new Blob([header+txt], {type: 'text/plain;charset = utf-8'})
+			let temp_a = document.createElement("a")
+			temp_a.download = cn + ' ('+cdate+').csv'
+			temp_a.href = window.webkitURL.createObjectURL(blob)
+			temp_a.click()
+			write2log('Saved CSV file ' +  cn + ' ('+cdate+').csv' )
 
-		document.getElementById('save-attendance-file').style.visibility = 'hidden'
+			document.getElementById('save-csv-file').style.visibility = 'hidden'
+					
+		})
+	
+	}
+	
+	// update the attendance summary tab
+	function updateAttendanceSummary(){
+		let cl=document.getElementById('invited-list').value
+		let marked_present = (!!cl.match(/[✔\?]/g))?cl.match(/[✔\?]/g).length:0
+		let total_invited = (!!cl.replace(/\n\n/gm,'\n').match(/[\n]/g))?cl.replace(/\n\n/gm,'\n').match(/[\n]/g).length:0
+		document.getElementById('attendance-summary').innerHTML = marked_present+' of ' +(total_invited+1)+ ' participants'
+		if(!!document.getElementById('show-gma-attendance-fields')) document.getElementById('show-gma-attendance-fields').title = "Present "+marked_present+' of ' +(total_invited+1)+ ' participants'
 	}
 
-	// save a class name to the drop down list
+	// show the read file icon
+	function showReadFile(){
+		let isVis=document.getElementById('read-file-label').style.visibility
+		if( isVis === 'visible' ) return
+		document.getElementById('read-file-label').style.visibility='visible'
+	}
+	// auto hide the class message field
+	function autoHideAddClassMessage(nn){
+		let delay=nn||1500
+		window.setTimeout(function(){
+			document.getElementById('add-class-message').style.display='none'
+			document.getElementById('gma-class-list-header').style.display='block'
+			document.getElementById('gma-add-class').style.display='none'
+			document.getElementById('invited-list').style.display='block'
+			document.getElementById('add-class-message').classList.remove('bold')
+		}, delay)
+	}
+	
+	// tidy up if the user chooses not to add a class
+	function doNotAddClass(){
+		//console.log('doNotAddClass',ddStrings.not_added)
+		document.getElementById('add-class-message').innerText=ddStrings.not_added
+		document.getElementById('class-delete').style.visibility = 'visible'
+		document.getElementById('gma-attendance-fields').classList.add('empty')
+		document.getElementById('select-class').style.display = 'inline-block'
+		document.getElementById('read-file-label').style.visibility = 'visible'
+		document.getElementById('class-name').style.display = 'none'
+		document.getElementById('add-class').style.display = 'none'
+		document.getElementById('cancel-add').style.display = 'none'
+		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
+			let currentClassCode = r['Current-Class-Code']
+			document.getElementById('select-class').value=currentClassCode
+			changeClass()
+		})
+		autoHideAddClassMessage()
+	}
+	// add a new class to the drop down list
 	function addClass(){
 		let cn = document.getElementById('class-name').value.trim()
 		let cc = cn.replace(/ /g,'-')
 		if(cc==''){
-			document.getElementById('class-name').classList.remove('add-class')
-			document.getElementById('class-delete').style.visibility = 'visible'
-			document.getElementById('attendance-div').classList.add('empty')
-			document.getElementById('select-class').style.display = 'inline-block'
-			document.getElementById('read-file-label').style.visibility = 'visible'
-			document.getElementById('class-name').style.display = 'none'
-			chrome.storage.sync.get(['Current-Class-Code'], function (r) {
-				let currentClassCode = r['Current-Class-Code']
-				document.getElementById('select-class').value=currentClassCode
-				changeClass()
-			})
+			doNotAddClass()
 			return
 		}
-		let hdr = document.querySelector("[label='My Classes']")
+		let hdr = document.getElementById("named-classes")
 		let no = document.createElement("option");
 		no.text = cn;
 		no.value = cc;
 		hdr.appendChild(no)
 		document.getElementById('select-class').value = cc;
 		chrome.storage.sync.set({'Current-Class-Code': cc}, callBackSet )
+		sessionStorage.getItem('_Class4ThisMeet', cc)
 		chrome.storage.sync.get(['__Class-Info'], function (r) {
 			let cls = r['__Class-Info']
 			let classInfo = (!cls||cls === '')?{'Class-List':'Class List'}:JSON.parse(cls)||{}
@@ -243,10 +300,16 @@
 			chrome.storage.sync.set({'__Class-Info':JSON.stringify(classInfo)}, callBackSet )
 			document.getElementById('class-name').classList.remove('add-class')
 			document.getElementById('class-delete').style.visibility = 'visible'
-			document.getElementById('attendance-div').classList.add('empty')
+			document.getElementById('gma-attendance-fields').classList.add('empty')
 			document.getElementById('select-class').style.display = 'inline-block'
 			document.getElementById('read-file-label').style.visibility = 'visible'
 			document.getElementById('class-name').style.display = 'none'
+			document.getElementById('add-class').style.display = 'none'
+			document.getElementById('cancel-add').style.display = 'none'
+			document.getElementById('add-class-message').innerText=ddStrings.added
+			autoHideAddClassMessage()
+			write2log('Added class: ' +  cn )
+
 		})
 	}
 	// delete a class from the drop-down & LS variables
@@ -261,6 +324,7 @@
 			delete classInfo[cc]
 			chrome.storage.sync.set({'__Class-Info':JSON.stringify(classInfo)}, callBackSet )
 			chrome.storage.sync.set({'Current-Class-Code': 'Class-List'}, callBackSet )
+			sessionStorage.setItem('_Class4ThisMeet', 'Class-List')
 			chrome.storage.sync.remove('__Class-'+cc)
 			let csl = document.getElementById("select-class");
 			csl.remove(csl.selectedIndex);
@@ -269,6 +333,7 @@
 			document.getElementById('invited-list').value = ''
 			document.getElementById('class-delete').style.visibility = 'hidden'
 
+			write2log('Deleted class: ' +  cn )
 			changeClass()
 			old_np = 0
 		})
@@ -276,6 +341,16 @@
 	// pick new class from drop-down
 	function changeClass(){
 		hideUpdateText()
+		if( document.getElementById("gma-attendance-fields").classList.contains('meeting-over') && ( document.getElementById('save-csv-file').style.visibility==="visible" ||  document.getElementById('save-html-file').style.visibility==="visible" ) ){
+			document.getElementById("gma-attendance-fields").classList.remove('meeting-over')
+			if( !confirm( 'There may be unsaved information for the current class.  Changing to a new class will result in the loss that info. \n\nAre you sure you want to change?  There is no undo!' )){
+				chrome.storage.sync.get(['Current-Class-Code'], function (r) {
+					document.getElementById('select-class').value=r['Current-Class-Code']
+				})
+				return
+			}
+		}
+		
 		let currentClassCode = document.getElementById('select-class').value
 		if(currentClassCode === '+'){
 			addClassInfo()
@@ -289,30 +364,50 @@
 				let classInfo = JSON.parse( r['__Class-Info'] )||{}
 				let currentClassName = classInfo[currentClassCode]
 				document.getElementById('class-name').value = currentClassName
+				write2log('Changed class to: ' +  currentClassName )
 
 				chrome.storage.sync.set({'Current-Class-Code':currentClassCode}, callBackSet )
+				sessionStorage.setItem('_Class4ThisMeet', currentClassCode)
 				chrome.storage.sync.get(['__Class-'+currentClassCode], function (r) {
 					let classNames = r['__Class-'+currentClassCode]||''
 					document.getElementById('invited-list').value = classNames.replace(/\n\s+/g,'\n')
 					document.getElementById('class-delete').style.visibility = 'visible'
+					_arrivalTimes = {} // clear the time of arrival array
+					sessionStorage.removeItem('Meeting-start-time')
 					if(classNames === ''){
-						document.getElementById('attendance-div').classList.add('empty')
-						document.getElementById('invited-list').setAttribute('placeholder',"Enter the names of the expected attendees for your Meet here.\n\nMy recommendation is to click the `Class List` drop down and choose `Add`.  Next, enter the name of your class and then click the folder icon to read the names from a text file.  Hopefully, once you've added your classes, you will not have to do it again.\n\nAnother option is to copy & paste the names from another source. You can also just type the names.\n\nIf all else fails, leave this field empty and start your Meet... the attendees' names will be added automatically.\n\nIn my experience, the names should be entered `<first> <last>` - e.g.,\nAl Caughey\n(Upper, lower or mixed case does not matter)")
+						document.getElementById('gma-attendance-fields').classList.add('empty')
 					}
 					else{
-						document.getElementById('attendance-div').classList.remove('empty')
+						document.getElementById('gma-attendance-fields').classList.remove('empty')
+						updateAttendanceSummary()
+						checkClearAttendance()
 					}
-					document.getElementById('save-attendance-file').style.visibility = 'hidden'
+					document.getElementById('save-csv-file').style.visibility = 'hidden'
+					document.getElementById('save-html-file').style.visibility = 'hidden'
 					old_np = 0
 					if(currentClassCode === 'Class-List') document.getElementById('class-delete').style.visibility = 'hidden'
+					
+					if (document.getElementById('gma-attendance-fields').classList.contains('in-meeting')) {
+						setStartTime()
+					}
 				})
 			})
 		}
 	}
 	// called when add is selected from the drop-down
 	function addClassInfo(){
+		document.getElementById('class-name').addEventListener('keyup', showReadFile, {once:true} )				     	// save the new named class
+		//console.log('addClassInfo', ddStrings.adding)
+		
+		document.getElementById('gma-class-list-header').style.display='none'
+		document.getElementById('invited-list').style.display='none'
+		document.getElementById('gma-add-class').style.display='block'
+		document.getElementById('add-class-message').style.display='block'
+		document.getElementById('add-class-message').innerText=ddStrings.adding
 		document.getElementById('select-class').style.display = 'none'
 		document.getElementById('class-name').style.display = 'inline-block'
+		document.getElementById('add-class').style.display = 'inline-block'
+		document.getElementById('cancel-add').style.display = 'inline-block'
 		document.getElementById('class-name').value = ''
 		document.getElementById('class-name').classList.add('add-class')
 		document.getElementById('invited-list').value = ''
@@ -322,33 +417,49 @@
 	}
 	// called when reset is selected from the drop-down
 	function resetClassInfo(){
-		if(!confirm('Are you sure you want to delete *all* of your class info?  There is no undo!')){
-			chrome.storage.sync.get(['Current-Class-Code'], function(r){
-				document.getElementById('select-class').value = r['Current-Class-Code']
-			})
+		if(!confirm( 'Are you sure you want to delete *all* of your class info?  There is no undo!' )){
+			document.getElementById('select-class').value = sessionStorage.getItem('_Class4ThisMeet')
 			return
 		}
+		write2log( 'Reset' )
 		chrome.storage.sync.set({'Current-Class-Code':'Class-List'}, callBackSet )
 		chrome.storage.sync.set({'__Class-Info':''}, callBackSet )
+		sessionStorage.setItem('_Class4ThisMeet', 'Class-List')
 		document.getElementById('select-class').innerHTML = ''
 		setClassList('select-class')
 
-		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
-			document.getElementById('select-class').value = r['Current-Class-Code'].replace(/ /g,'-')
-			document.getElementById('invited-list').value = ''
-			document.getElementById('class-delete').style.visibility = 'hidden'
-			document.getElementById('attendance-div').classList.add('empty')
-			for (var key in localStorage){
+		document.getElementById('invited-list').value = ''
+		document.getElementById('class-delete').style.visibility = 'hidden'
+		document.getElementById('gma-attendance-fields').classList.add('empty')
+		chrome.storage.sync.get( null, function(r) {
+			for (var key in r){
 				if(key.indexOf('__Class') === 0){
 				   chrome.storage.sync.remove(key);
 				}
 			}
+		   chrome.storage.sync.remove('saved-attendance');
 		})
 	}
-	// load the names associated with a class from the LS variables
+	
+	function checkClearAttendance(){
+		//console.log('checkClearAttendance()')
+		if(document.getElementById('invited-list').value.indexOf('✔')===-1 && document.getElementById('invited-list').value.indexOf('?')===-1)	return 
+		if(!sessionStorage.getItem('Meeting-start-time')) {
+				chrome.storage.sync.get(['auto-clear-checks'], function(r){
+					if (r['auto-clear-checks']){
+						clearPresent()
+					}
+					else{
+						if(confirm( 'Do you want to clear the attendance checks (`✔`) from your previous meet? (Recommended Yes)' )) clearPresent()
+					}
+				})
+		}
+	}
+	
+	// load the names associated with a class
 	function loadClassNames(){
 		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
-			let currentClassCode = r['Current-Class-Code']
+			let currentClassCode = sessionStorage.getItem('_Class4ThisMeet')||r['Current-Class-Code']
 			//console.log('Current-Class-Code',currentClassCode)
 			let cc = '__Class-'+currentClassCode
 			chrome.storage.sync.get( [cc], function (r) {
@@ -360,197 +471,122 @@
 
 					let classInfo = (cls === '')?{'Class-List':'Class List'}:JSON.parse(cls)||{}
 					let className = (!classInfo||!classInfo[currentClassCode])?'Class List':classInfo[currentClassCode]
+					write2log( 'Loaded names for ' + className )
+
 					document.getElementById('class-name').value = className
 					if(classNames === ''){
-						document.getElementById('attendance-div').classList.add('empty')
-						document.getElementById('invited-list').setAttribute('placeholder',"Enter the names of the expected attendees for your Meet here.\n\nMy recommendation is to click the `Class List` drop down and choose `Add`.  Next, enter the name of your class and then click the folder icon to read the names from a text file.  Hopefully, once you've added your classes, you will not have to do it again.\n\nAnother option is to copy & paste the names from another source. You can also just type the names.\n\nIf all else fails, leave this field empty and start your Meet... the attendees' names will be added automatically.\n\nIn my experience, the names should be entered `<first> <last>` - e.g.,\nAl Caughey\n(Upper, lower or mixed case does not matter)")
+						document.getElementById('gma-attendance-fields').classList.add('empty')
 					}
 					else{
-						document.getElementById('attendance-div').classList.remove('empty')
+						document.getElementById('gma-attendance-fields').classList.remove('empty')
+						updateAttendanceSummary()
+						checkClearAttendance()
 					}
 					document.getElementById('select-class').value = className.replace(/ /g,'-')
 				})
 			})
 		})
 	}
-	// update the LocalStorage variable when the list has changed
+	// update the sync variable when the list has changed
 	function listChanged(){
 		if (!document.getElementById('invited-list')) return
 
-		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
-			let currentClassCode = r['Current-Class-Code']
-			let il = document.getElementById('invited-list'), ad = document.getElementById('attendance-div'), st = document.getElementById('save-attendance-file')
-			let ct = il.value.trim().replace(duplicatedLines, "$1").replace(/\n\s+/g,'\n')
-			if(ct === ''){
-				ad.classList.add('empty')
-				st.style.visibility = 'hidden'
-				il.title = 'Pick a class or enter some names'
-			}
-			else{
-				il.value = ct
-				ad.classList.remove('empty')
-				st.style.visibility = 'visible'
-				let marked_present = (!!ct.match(/[✔\?]/g))?ct.match(/[✔\?]/g).length:0
-				let total_invited = (!!ct.replace(/\n\n/gm,'\n').match(/[\n]/g))?ct.replace(/\n\n/gm,'\n').match(/[\n]/g).length:0
-				il.title = "Present "+marked_present+' of ' +(total_invited+1)+ ' participants'
-				if(document.getElementById('show-attendance-div')) document.getElementById('show-attendance-div').title = "Present "+marked_present+' of ' +(total_invited+1)+ ' participants'
-			}
-			let ccc={}
-			ccc['__Class-'+currentClassCode]=ct
-			chrome.storage.sync.set(ccc, callBackSet )
-			old_np = 0
-		})
+		let currentClassCode = sessionStorage.getItem('_Class4ThisMeet')
+		let il = document.getElementById('invited-list'), ad = document.getElementById('gma-attendance-fields'), st = document.getElementById('save-csv-file'), ht = document.getElementById('save-html-file')
+		let ct = il.value.replace(/✔[ ]{2,}/g,'✔ ').replace(/\?[ ]{2,}/g,'\? ').replace(/^[\t ]*|[\t ]*$/gm,'').replace(duplicatedLines, "$1").replace(/\n\s+/g,'\n').trim()
+		
+		if(ct === ''){
+			ad.classList.add('empty')
+			st.style.visibility = 'hidden'
+			ht.style.visibility = 'hidden'
+			il.title = 'Pick a class or enter some names'
+		}
+		else{
+			il.value = ct
+			ad.classList.remove('empty')
+			st.style.visibility = 'visible'
+			ht.style.visibility = 'visible'
+			updateAttendanceSummary()
+		}
+		let ccc={}
+		ccc['__Class-'+currentClassCode]=ct
+		chrome.storage.sync.set(ccc, callBackSet )
+		old_np = 0
 	}
 
 	// remove all preceding ✔|? from the list of names in the textarea
 	function clearPresent(){
 		hideUpdateText()
-		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
-			let currentClassCode = r['Current-Class-Code']
-			let invitees = document.getElementById("invited-list");
-			let ct = invitees.value.replace(/( )*[✔\?]\s*/g,'').replace(/\t/g,'')
-			invitees.value = ct
-			let ccc={}
-			ccc['__Class-'+currentClassCode]=ct
-			chrome.storage.sync.set(ccc, callBackSet )
-			old_np = 0
-		})
-	}
-
-	// stop propagation of clicks in attendance-div-header
-	function stopProp(e){
-		e = e || window.event;
-		e.stopPropagation()
-	}
-
-	// reset the meeting start time
-	function setStartTime(){
-		let now = new Date(), meetingStart = now.getHours()+':'+twod(now.getMinutes())
-		sessionStorage.setItem('Meeting-start-time', meetingStart)
-		document.getElementById('start-time').title = 'Current start time is: '+meetingStart
-		if(!!document.getElementsByClassName('current-start-time')[0]) document.getElementsByClassName('current-start-time')[0].innerText = meetingStart
+		let currentClassCode = sessionStorage.getItem('_Class4ThisMeet')
+		let invitees = document.getElementById("invited-list");
+		let ct = invitees.value.replace(/( )*[✔\?]\s*/g,'').replace(/\t/g,'')
+		invitees.value = ct
+		let ccc={}
+		ccc['__Class-'+currentClassCode]=ct
+		chrome.storage.sync.set(ccc, callBackSet )
+		old_np = 0
+		updateAttendanceSummary()
+		write2log( 'Cleared present checks ' + currentClassCode )
 	}
 
 	// clear the textarea
 	function clearList(){
 		hideUpdateText()
-		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
-			let currentClassCode = r['Current-Class-Code']
-			document.getElementById("invited-list").value = '';
-			let ccc={}
-			ccc['__Class-'+currentClassCode]=''
-			chrome.storage.sync.set(ccc, callBackSet )
-			document.getElementById("attendance-div").classList.add('empty')
-			old_np = 0
-			document.getElementById('save-attendance-file').style.visibility = 'hidden'
-			old_np = 0
-			_arrivalTimes = {} // clear the time of arrival array
-		})
-  	}
-
-	let _arrivalTimes = {} // array to store initial arrival time of each attendee
-	let monitoring
-
-	// update the attendance status of the invitees
-	function startStopMonitor(){
-		let checked = document.getElementById("monitor-attendance").checked
-		//console.log('startStopMonitor',checked)
-		if (checked){
-			monitorWhosThere()
-			monitoring = setInterval(monitorWhosThere, 60000)
-			chrome.storage.sync.set({'monitor-attendance':true}, callBackSet )
-		}
-		else{
-			window.clearInterval(monitoring)
-			chrome.storage.sync.set({'monitor-attendance':false}, callBackSet )
-		}
-	}
-	function monitorWhosThere(){
-		//console.log('monitorWhosThere')
-		let participants = document.querySelectorAll('[data-requested-participant-id]')
-		for (let aa of participants){
-			// parse the innerHTML; remove tagged content, duplicated lines, etc.
-			let pn = aa.innerHTML.replace(/<[^>]*?>/ig,'\n')
-			.replace(re_replace,'')
-			.replace(/\n\s*\n*/gm,'\n')
-			.replace(/\(.*\)/ig,'')
-			.replace(duplicatedLines, "$1")
-			.trim()
-			//console.log(pn, aa)
-			// no text --> get the next line
-			if(pn === '')	continue
-
-			// set their initial arrival time
-			if(!_arrivalTimes[pn]){
-				let now = new Date(), ctime = now.getHours()+':'+twod(now.getMinutes())
-				_arrivalTimes[pn] = {'arrived':ctime,'stayed':1}
-			}
-			_arrivalTimes[pn].stayed++
-			//console.log('monitorWhosThere',pn,_arrivalTimes[pn].stayed)
-		}
-	}
-	function checkParticipants(isManual){
-		let participants = document.querySelectorAll('[data-requested-participant-id],[data-participant-id]')
-		// to-do might want to look at [role = "presentation"] && [data-sender-name] too
-		if(!participants) return
-		//console.log('checkParticipants', isManual)
-		// look for a change in the number of participants
-		let np = participants.length
-		if (!isManual && old_np === np) {
+		if(!confirm( 'Are you sure you want to delete *all* the names in this class?  There is no undo!' )){
 			return
 		}
-		old_np = np
+		let currentClassCode = sessionStorage.getItem('_Class4ThisMeet')
+		document.getElementById("invited-list").value = '';
+		let ccc={}
+		ccc['__Class-'+currentClassCode]=''
+		chrome.storage.sync.set(ccc, callBackSet )
+		document.getElementById("gma-attendance-fields").classList.add('empty')
+		document.getElementById('save-csv-file').style.visibility = 'hidden'
+		document.getElementById('save-html-file').style.visibility = 'hidden'
+		old_np = 0
+		_arrivalTimes = {} // clear the time of arrival array
+ 		write2log( 'Clear all names for ' + currentClassCode )
+ 	}
+
+	function checkParticipants(){
 
 		let now = new Date(), ctime = now.getHours()+':'+twod(now.getMinutes())
 
-		var tta = document.getElementById('invited-list')
-		let tal = tta.value
-		let tallc = tal.toLowerCase()
+		let tal = document.getElementById('invited-list').value
+		let tallc = tal.toLowerCase().replace(/✔[ ]{2,}/g,'✔ ').replace(/\?[ ]{2,}/g,'\? ').replace(/^[\t ]*|[\t ]*$/gm,'').split('\n')
 		let changed = false
-		for (let aa of participants){
-			// parse the innerHTML; remove tagged content, duplicated lines, etc.
-			let pn = aa.innerHTML.replace(/<[^>]*?>/ig,'\n')
-			.replace(re_replace,'')
-			.replace(/\n\s*\n*/gm,'\n')
-			.replace(/\(.*\)/ig,'')
-			.replace(duplicatedLines, "$1")
-			.trim()
 
-			// no text --> get the next line
-			if(pn === '')	continue
-
-			// set their initial arrival time
-			if(!_arrivalTimes[pn]) _arrivalTimes[pn] = {'arrived':ctime,'stayed':0}
-
+		let lop=getListOfParticipants()
+		for (let pid of lop){
+			let name=_arrivalTimes[pid].name
+			let lc=name.toLowerCase()
+			
 			// update the field
-			let lc = pn.toLowerCase()
-			if( lc.indexOf(uiStrings.presenting) >= 0 || lc.indexOf(uiStrings.presentation) >= 0) continue
-
-			if(tallc.indexOf(lc) === -1){
-				//console.log(pn + ' joined (unexpectedly)', aa)
-				tal += '\n? '+pn
-				changed = true
-			}
-			else if(tallc.indexOf('? '+ lc) >= 0){
-				continue // already uninvited
-			}
-			else if(tallc.indexOf('✔ '+ lc) >= 0){
+			if(tallc.includes('✔ '+lc)){
 				continue // already marked present
 			}
-			 else if(tallc.indexOf('✔ '+ lc) === -1){
-				const pattern = new RegExp(pn, 'i')
-				//console.log(pn + ' joined (as expected) at' + _arrivalTimes[pn].arrived)
-				tal = tal.replace(pattern,'✔ '+pn)
+			else if(tallc.includes('? '+lc)){
+				continue // already marked uninvited
+			}
+			else if(tallc.includes(lc)){
+				let ap = tallc.indexOf(lc);
+				tallc[ap]=( '✔ '+name)
 				changed = true
+				write2log('checkParticipants - ' + name + ' arrived')
 			}
 			else{
-				//console.log('WTF - ' + pn)
+				tallc.push( '? '+name)
+				changed = true
+				write2log('checkParticipants - ' + name + ' was added to the class list')
+
 			}
 		}
 		// if the list changed, a littlehousekeeping and save the changes
 		if (changed) {
-			tta.value = tal.trim().replace(/✔\s*✔\s*/g,'✔ ').replace(duplicatedLines, "$1")
+			write2log
+			document.getElementById('invited-list').value = tallc.join('\n')
 			listChanged()
+			sessionStorage.setItem('_arrivalTimes', JSON.stringify(_arrivalTimes))
 		}
 	}
 
@@ -559,97 +595,133 @@
 		let ln = document.querySelectorAll('[data-show-automatic-dialog]').length
 		let btn = document.createElement('span');
 		btn.textContent = '✔';
-		btn.id = 'show-attendance-div'
+		btn.id = 'show-gma-attendance-fields'
 		btn.title = 'Show/hide the Attendance field'
 		document.querySelectorAll('[data-show-automatic-dialog]')[ln-1].parentElement.parentElement.appendChild(btn)
-		document.getElementById("show-attendance-div").addEventListener("click", showAttendance, false);
-		document.getElementById("show-attendance-div").classList.add('showing')
+		document.getElementById("show-gma-attendance-fields").addEventListener("click", showAttendance, false);
+		document.getElementById("show-gma-attendance-fields").classList.add('showing')
 	}
 
-	// show/hide button for the attendance field when the show-attendance-div button is clicked
-	function showAttendance( e ){
-		let vis = document.getElementById("attendance-div").style.display
-		document.getElementById("update-text").style.display='none'
-		document.getElementById('help-buttons').style.display='none'
-		document.getElementById("invited-list").style.display='block'
-		document.getElementById("attendance-div").classList.add('in-meeting')			
-
-		if(vis === 'none'){
-			document.getElementById("attendance-div").style.display = 'initial'
-			document.getElementById("show-attendance-div").classList.add('showing')
-		}
-		else{
-			document.getElementById("attendance-div").style.display = 'none'
-			document.getElementById("show-attendance-div").classList.remove('showing')
-		}
-		e = e || window.event;
-		e.preventDefault();
-		e.stopPropagation()
-	}
-	
-	// add a child element to the parent element
-	function addElement(p, e, i, ti, cl){
-		let de = document.createElement(e)
-		de.id = i
-		if(!!ti) de.title = ti
-		if(!!cl) de.classList.add(cl)
-		if(e === 'img') de.src = chrome.runtime.getURL("images/"+i+".png");
-		p.appendChild(de)
-	}
 	function check4Changes(){
 		chrome.storage.sync.get(['__GMA_status'], function(r) {
 			let status=r['__GMA_status']
 
 			if (status==='install'){
-				showInstall()
+				showInstall(15)
+				//hideUpdateTimeOut()
 			}
 			else if(status==='update'){
-				showUpdate()
+				
+				chrome.storage.sync.get(['auto-hide-updates'], function(r){
+					let dur=r['auto-hide-updates']==''?10:r['auto-hide-updates']*1
+					if ( dur >0 ){
+						showUpdate( dur )
+						hideUpdateTimeOut()
+					}
+					document.getElementById("gma-attendance-fields").classList.add('updated')
+					document.getElementById("gma-version").title="Click to see what's new in this version"
+				})
 			}
 			else if(status==='up-to-date'){
-				//console.log(status, document.getElementById("attendance-div-footer"))
-				document.getElementById("attendance-div-footer").title='Your extension is up-to-date'
+				//console.log(status, document.getElementById("gma-attendance-fields-footer"))
+				document.getElementById("gma-version").title='Your extension is up-to-date... click to see changes'
 			}
 			else{
 				//console.log("huh?!? status = "+status)
 			}
+			write2log( '__GMA_status: '+ status )
 			chrome.storage.sync.set({'__GMA_status':'up-to-date'}, callBackSet)
 		})
 	}
 	function wait4Meet2End(){
 		// wait until the meeting is done
-		waitForElement('[data-call-ended = "true"]',function(){
-			let a_div = document.getElementById("attendance-div")
+		waitForElement('[data-call-ended="true"]',function(){
+			write2log( '**** Meet ended ****' )
+			hideUpdateText()
+			let a_div = document.getElementById("gma-attendance-fields")
 			a_div.style = ''
 			a_div.classList.remove('in-meeting')
 			a_div.classList.add('meeting-over')
-			//document.getElementById('check-attendance').style.isibility = 'hidden'
-			document.getElementById('monitor-attendance').style.visibility = 'hidden'
+			document.getElementById('save-csv-file').style.visibility = 'visible'
+			document.getElementById('save-html-file').style.visibility = 'visible'
+			document.getElementById("gma-attendance-fields").classList.remove('in-meeting')
+
 			window.clearInterval(monitoring)
+			let now = new Date(), ctime = now.getHours()+':'+twod(now.getMinutes())
+			sessionStorage.setItem( 'Meeting-end-time', ctime )
+			chrome.storage.sync.get(['auto-save-html','auto-save-csv'], function(r) {
+				let asf='', svn=0, asfh=5000
+				if(r['auto-save-html']){
+					document.getElementById('save-html-file').click()
+					svn+=1
+				}
+				if(r['auto-save-csv']){
+					document.getElementById('save-csv-file').click()
+					svn+=2
+				}
+				if (svn==0){
+					asf="Don't forget to save your files!"
+					asfh=30000
+				}
+				else if(svn==1){
+					asf="Auto-saved your HTML file"
+				}
+				else if(svn==2){
+					asf="Auto-saved your CSV file"
+				}
+				else if(svn==3){
+					asf="Auto-saved your HTML & CSV files"
+				}
+				document.getElementById('add-class-message').style.display='block'
+				document.getElementById('add-class-message').innerText=asf
+				document.getElementById('add-class-message').classList.add('bold')
+				write2log( 'Auto-save: '+ svn )
+				autoHideAddClassMessage(asfh)
+			})
 		});
 	}
 	function wait4Meet2Start(){
 		// wait until the meeting has started
+		
+		write2log( 'Waiting for the Meet to start' )
 		waitForElement("[data-allocation-index]",function(){
+			write2log( '**** Meet started ****' )
 			//document.getElementById('check-attendance').style.visibility = 'visible'
 			document.getElementById('start-time').style.visibility = 'visible'
-			document.getElementById('monitor-attendance').style.visibility = 'visible'
+			document.getElementById("gma-attendance-fields").classList.add('in-meeting')
+
 			if(!sessionStorage.getItem('Meeting-start-time') || sessionStorage.getItem('Meeting-start-time') === ''){
 				setStartTime()
 			}
+			else {
+				let meetingStart=sessionStorage.getItem('Meeting-start-time')
+				document.getElementById('start-time').style.visibility = 'visible'
+				document.getElementById('start-time').title = 'Current start time is: ' + meetingStart
+				document.getElementById('sp-start-time').innerText = meetingStart
+				updateDuration()
+			}
+			write2log( 'Video portion of Meet started at : ' + sessionStorage.getItem('Meeting-start-time') )
 			
-			
+			chrome.storage.sync.get(['draggable-top','draggable-left'], function(r) {
+				if(!!r['draggable-top']){
+					//console.log('top',r['draggable-top'])
+					document.getElementById("gma-attendance-fields").style.top=r['draggable-top']
+				}
+				if(!!r['draggable-left']){
+					//console.log('left',r['draggable-left'])
+					document.getElementById("gma-attendance-fields").style.left=r['draggable-left']
+				}
+			})
 			chrome.storage.sync.get(['monitor-attendance'], function(r){
 				if(!r['monitor-attendance']) return
-				document.getElementById("monitor-attendance").checked=true
-				startStopMonitor()
+				startMonitoring()
 			})
 			
 			insertAttendanceSwitch()
 
 			let ct = document.getElementById('invited-list').value.trim()
 			if(ct !== ''){
-				document.getElementById("attendance-div").classList.remove('empty')
+				document.getElementById("gma-attendance-fields").classList.remove('empty')
 			}
 			checkParticipants()  // Check as soon as you join the Meet
 
@@ -662,70 +734,96 @@
 			});
 			// watch for changes (adding new participants to the Meet)
 			observer.observe(document.body, {childList:true, attributes:false, subtree:true, characterData:false});
+		
 			
-			showMeetingStarted()
+			showMeetingStarted() // --> updates.js
 			
 			wait4Meet2End()
 			
 		})
 	}
-	
 	function createAttendanceFields(){
 		// setup - the attendance div and `buttons`
-		let atd = document.createElement('div')
-		atd.id = 'attendance-div'
-		atd.classList.add('empty')
-		document.body.appendChild(atd)
+		addElement(document.body,'div','gma-attendance-fields','','')
 
-		const atp = document.createElement('p')
-		atp.id = 'attendance-div-header'
-		addElement(atp,'select','select-class','Pick a class; use Add only use if LocalStorage variables are permitted')
-		addElement(atp,'input','class-name','Enter the class name')
-		addElement(atp,'label','read-file-label','Load a previously saved file','gma-btn')
-		addElement(atp,'input','read-file','','')
-		addElement(atp,'img','class-delete','Delete this class','gma-btn' )
-		addElement(atp,'img','clear-attendance-marks','Clear attendance checks','gma-btn')
-		addElement(atp,'img','clear-attendance-field','Clear the class list field','gma-btn')
-		//addElement(atp,'img','check-attendance','Manually trigger an attendance check','gma-btn')
-		addElement(atp,'img','start-time','Manually reset the class start time','gma-btn')
-		addElement(atp,'input','monitor-attendance','Monitor who is present on the call','')
-		addElement(atp,'img','save-attendance-file','Save Attendance as CSV file','gma-btn')
-		addElement(atp,'input','class-code','','')
-		document.getElementById('attendance-div').appendChild(atp)
-
-		document.getElementById('class-name').type = 'text'
+		let gaf=document.getElementById('gma-attendance-fields')
+		
+		//add top level child elements
+		addElement(gaf,'div','gma-class-list-div','','')
+		addElement(gaf,'div','gma-messages-div','','')
+		addElement(gaf,'div','gma-settings-div','','')
+		addElement(gaf,'p','gma-footer','','')
+		
+		//add class list child elements
+		let gcld=document.getElementById('gma-class-list-div')
+		addElement(gcld,'p','gma-class-list-header','','gma-header')
+		addElement(gcld,'p','gma-add-class','','gma-header')
+		addElement(gcld,'p','add-class-message','','')
+		addElement(gcld,'textarea','invited-list','Pick, paste or type your class list into this field','')
+		addElement(gcld,'p','p-attendance-summary','Not Monitoring Attendance!','')
+		
+		//add class list header elements
+		let cldh=document.getElementById('gma-class-list-header')
+		addElement(cldh,'select','select-class','Pick a class; pick Add to add your own classes')
+		addElement(cldh,'label','read-file-label','Load a previously saved file','gma-btn')
+		addElement(cldh,'input','read-file','','')
+		addElement(cldh,'img','class-delete','Delete this class','gma-btn' )
+		addElement(cldh,'img','clear-attendance-marks','Clear attendance checks','gma-btn')
+		addElement(cldh,'img','clear-attendance-field','Clear the class list field','gma-btn')
+		addElement(cldh,'img','start-time','Manually reset the class start time','gma-btn')
+		addElement(cldh,'img','save-csv-file','Save Attendance as CSV file','gma-btn')
+		addElement(cldh,'img','save-html-file','Save Attendance to an HTML file','gma-btn')
+		addElement(cldh,'input','class-code','','')
+		document.getElementById('invited-list').setAttribute('placeholder',"Your class list goes here.\nClick the blue question mark below for help.")
 		document.getElementById('read-file-label').style.backgroundImage = "url('"+chrome.runtime.getURL("images/read-file.png")+"')";
 		document.getElementById("read-file-label").htmlFor = "read-file";
-		document.getElementById('read-file').type = 'hidden'
 		document.getElementById('class-code').type = 'hidden'
 		document.getElementById('read-file').type = 'file'
-		document.getElementById('monitor-attendance').type = 'checkbox'
+		
+		let gac=document.getElementById('gma-add-class')
+		addElement(gac,'input','class-name','Enter the class name')
+		addElement(gac,'img','add-class','Add this class!','gma-btn' )
+		addElement(gac,'img','cancel-add','Do *not* add this class!','gma-btn' )
+		document.getElementById('class-name').type = 'text'
 
-		addElement(atd,'textarea','invited-list','Pick, paste or type your class list into this field','')
-		addElement(atd,'p','help-buttons','','')
-		let hbp = document.getElementById('help-buttons')
-		addElement(hbp,'span','help-buttons-span','','' )
-		let hbsp = document.getElementById('help-buttons-span')
-		addElement(hbsp,'img','prev-page','Go to previous help page','gma-btn' )
-		addElement(hbsp,'img','close-help','Close this help page','gma-btn' )
-		addElement(hbsp,'img','next-page','Go to next help page','gma-btn' )
-		document.getElementById('attendance-div').appendChild(hbp)
-		addElement(atd,'div','update-text','','')
+		let pas=document.getElementById('p-attendance-summary')
+		addElement(pas,'span','attendance-summary','','')
+		addElement(pas,'span','sp-start-time','','')
+		addElement(pas,'span','sp-duration','','')
+		
+		//add messages div child elements
+		let gmd=document.getElementById('gma-messages-div')
+		addElement(gmd,'p','messages-div-header','','gma-header')
+		addElement(gmd,'div','messages-div-title','','')
+		addElement(gmd,'div','messages-div-body','','help-page')
+		addElement(gmd,'div','messages-div-footer','','help-footer','Click the red \'x\' above to close this help page.  <span id=\'auto-hide-text\'>This dialog will auto-hide in <span id=\'auto-hide-count-down\'></span> seconds.</span><br/>Click the version info in the footer below to show recent updates or click the question mark icon for help.')
+		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',0)
+		addElement(document.getElementById('messages-div-header'),'span','messages-title','','' )
+		addElement(document.getElementById('messages-div-header'),'img','close-help','Close this dialog','gma-btn' )
+		let hbp = document.getElementById('messages-div-title')
+		addElement(hbp,'img','prev-page','Go to previous help page','gma-btn' )
+		addElement(hbp,'h2','messages-page-title','','' )
+		addElement(hbp,'img','next-page','Go to next help page','gma-btn' )
+		let mdb=document.getElementById('messages-div-body')
+		addElement(mdb,'p','help-page-intro','','')
+		addElement(mdb,'ol','help-page-body','','')
+		addElement(mdb,'p','help-page-footer','','') 
+		//set button actions
 		document.getElementById('close-help').addEventListener('click', hideUpdateText, false)
 		document.getElementById('prev-page').addEventListener('click', showPrevHelp, false)
 		document.getElementById('next-page').addEventListener('click', showNextHelp, false)
 
-		const ftp = document.createElement('p')
-		ftp.id = 'attendance-div-footer'
-		addElement(ftp,'span','gma-version','','' )
-		addElement(ftp,'img','gma-help','Help?!?','gma-btn' )
-		document.getElementById('attendance-div').appendChild(ftp)
+		//append the footer
+		let gf=document.getElementById('gma-footer')
+		addElement(gf,'span','gma-version','','' )
+		addElement(gf,'img','gma-settings','Tweak your settings','gma-btn' )
+		addElement(gf,'img','gma-help','Help?!?','gma-btn' )
 
 		//document.getElementById('check-attendance').style.visibility = 'hidden'
 		document.getElementById('class-delete').style.visibility = 'hidden'
 		document.getElementById('start-time').style.visibility = 'hidden'
-		document.getElementById('save-attendance-file').style.visibility = 'hidden'
-		document.getElementById('monitor-attendance').style.visibility = 'hidden'
+		document.getElementById('save-csv-file').style.visibility = 'hidden'
+		document.getElementById('save-html-file').style.visibility = 'hidden'
 		document.getElementById('gma-version').innerText = 'Google Meet Attendance - v'+chrome.runtime.getManifest().version
 
 		// set the behaviours
@@ -738,63 +836,83 @@
 		} , false)		// manually fire the function to check attendance*/
 		document.getElementById('class-delete').addEventListener('click', deleteClass, false)				// delete a named class
 		document.getElementById('start-time').addEventListener('click', setStartTime, false)					// manually reset the class start time
-		document.getElementById('save-attendance-file').addEventListener('click', saveCSVFile, false)		// save the class list field to a textfile
+		document.getElementById('save-csv-file').addEventListener('click', saveCSVFile, false)		// save the class list field to a textfile
+		document.getElementById('save-html-file').addEventListener('click', saveHTMLFile, false)		    // save the class list field to an HTML file
 		//document.getElementById('class-name').addEventListener('change', addClass, false)					// save the new named class
-		document.getElementById('class-name').addEventListener('blur', addClass, false)				     	// save the new named class
+		//document.getElementById('class-name').addEventListener('blur', addClass, false)				     	// save the new named class
+		document.getElementById('add-class').addEventListener('click', addClass, false)				// clear all of the attendance markings
+		document.getElementById('cancel-add').addEventListener('click', doNotAddClass, false)				// clear all of the attendance markings
 		document.getElementById('invited-list').addEventListener('change', listChanged, false);				// if the user edits the field
-		document.getElementById('monitor-attendance').addEventListener('change', startStopMonitor, false);				// if the user edits the field
-		document.getElementById('gma-help').addEventListener('click', showInstall, false)					// open help
 		document.getElementById('gma-version').addEventListener('click', showUpdate, false)					// manually reset the class start time
+		document.getElementById('gma-settings').addEventListener('click', showSettings, false)					// open help
+		document.getElementById('gma-help').addEventListener('click', showInstall, false)					// open help
 
+		document.getElementById('gma-attendance-fields').onmousedown = stopProp;
 		document.getElementById('select-class').onmousedown = stopProp;
+		document.getElementById('invited-list').onmousedown = stopProp;
+		document.getElementById('messages-div-body').onmousedown = stopProp;
+		document.getElementById('messages-div-body').onmousedown = stopProp;
 		document.getElementById('read-file-label').onmousedown = stopProp;
 		document.getElementById('clear-attendance-marks').onmousedown = stopProp;
 		document.getElementById('clear-attendance-field').onmousedown = stopProp;
 		//document.getElementById('check-attendance').onmousedown = stopProp;
 		document.getElementById('class-delete').onmousedown = stopProp;
 		document.getElementById('start-time').onmousedown = stopProp;
-		document.getElementById('save-attendance-file').onmousedown = stopProp;
-		document.getElementById('monitor-attendance').onmousedown = stopProp;
+		document.getElementById('save-csv-file').onmousedown = stopProp;
+		document.getElementById('save-html-file').onmousedown = stopProp;
+		dragElement(document.getElementById("gma-attendance-fields"));
+		
+		write2log( 'Added Attendance dialog' )
 
-		dragElement(document.getElementById("attendance-div"));
-
-		loadClassNames()
-		if (!!sessionStorage.getItem('Meeting-start-time')){
-			document.getElementById('start-time').style.visibility = 'visible'
-			document.getElementById('start-time').title = 'Current start time is: '+sessionStorage.getItem('Meeting-start-time')
-		}
-	
 	}
 	// warn about unsave changes
 	window.addEventListener("beforeunload", function (e) {
-		if(!document.getElementById("save-attendance-file") || document.getElementById("save-attendance-file").style.visibility === 'hidden') return undefined
-		let alrt = 'It looks like you have unsaved Attendance changes!'
+		write2log( 'Reloaded the page' )
+		if(!document.getElementById("save-csv-file") || document.getElementById("save-csv-file").style.visibility === 'hidden' && document.getElementById("save-html-file").style.visibility === 'hidden') return undefined
+		let alrt = 'It looks like you have not saved one or both of the Attendance files!'
 								+ 'If you leave before clicking `[txt]`, your attendance may be lost.';
 		(e || window.event).returnValue = alrt;
 		return alrt;
 	});
 
 	//wait until there is a video DOM element (so that meet code has been selected)
-	waitForElement("video",function(){
-		
+	let numChecks=0
+
+	waitForElement("[data-in-call]",function(){
 		createAttendanceFields()
 		setClassList('select-class')
-
-		chrome.storage.sync.get(['Current-Class-Code'], function (result) {
-			let ccc=result['Current-Class-Code']||'Class-List'
-			//console.log( 'ccc', ccc )
+		
+		let _activeMeetID=document.querySelector('[data-unresolved-meeting-id]').getAttribute('data-unresolved-meeting-id')
+		let smids=sessionStorage.getItem('_activeMeetIDs')
+		if( !smids || smids==='' ){
+			//sessionStorage.removeItem( 'GMA-Log' )
+			write2log( 'Opened a new Meet: '+_activeMeetID )
+			sessionStorage.setItem( '_activeMeetIDs', _activeMeetID )
+		}
+		else if( smids===_activeMeetID ){
+			write2log( 'Rejoined Meet: '+_activeMeetID )
+		}
+		else{
+			write2log( 'Joined a different Meet --> previous: '+smids+' / current: '+_activeMeetID+'... resetting _arrivalTimes' )
+			sessionStorage.setItem( '_activeMeetIDs', _activeMeetID )
+			let _arrivalTimes = {}
+			sessionStorage.setItem( '_arrivalTimes', null )
+		}
+		
+		chrome.storage.sync.get(['Current-Class-Code'], function (r) {
+			let ccc=sessionStorage.getItem('_Class4ThisMeet')||r['Current-Class-Code']||'Class-List'
+			if(!sessionStorage.getItem('_Class4ThisMeet')) sessionStorage.setItem('_Class4ThisMeet', ccc)
 			document.getElementById('select-class').value = ccc.replace(/ /g,'-')
+			document.getElementById('class-delete').style.visibility = (ccc==='Class-List')?'hidden':'visible'
 		})
-
-		loadClassNames()
 		
 		//Has the extension been updated?
 		check4Changes()
 
+		loadClassNames()
+		
 		//now wait until they've entered the Meet
 		wait4Meet2Start()
 
 	})
-	
-
 })()
