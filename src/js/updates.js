@@ -1,4 +1,42 @@
+/*updateType
+   --> 2:major... dialogs stay on the screen until dismissed
+   --> 1:significant... dialogs stay on the screen for 15s (TBD)
+	--> 0|null: minor... dialogs adhere to prefer on Settings tab
+*/
 let updateSummary=[
+	{
+		version: '0.8.0', 
+		title: 'Changes in v', 
+		updateType: 1,
+		intro: "Monitoring is now the default behaviour (and cannot be turned off) & other changes on the Settings tab.", 
+		body: `<li>Removed the monitor attendance option from the Settings tab meaning that attendance will be monitored once per minute all of the time now.
+		<li>Added an option on the Settings tab to sort names by first, last or none... <br/>The sort is performed automatically whenever there is a change in the field.  To force a sort, add a space after a name or a blank line to the field.
+		<li>Added a button on the Settings tab to back-up your class lists to a text file (just in case!)<br/>The file will be written to your downloads directory.
+		<li>Fixed a small bug with multiple spaces and/or tabs between names.
+		<li>Fixed a bug where names were not being assigned properly after adding a new class.
+		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a>.</p>`,
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
+	},
+	{
+		version: '0.7.11', 
+		title: 'Changes in v', 
+		updateType: 1,
+		intro: "Fixed 'keep_off' issue and a few more updates", 
+		body: `<li>Fixed the way that names are automatically added to the class list<br/>Also added an arbitrary upper limit of 256 names but that can be changed on the Settings tab (it is just there to prevent an unanticipated error condition from adding names to the class ad infinitum)
+		<li>You can now change settings after the Meet has started
+		<li>Added an option to disable the extension for just the current Meet
+		<li>Added a timeout to the meet start dialog
+		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a></p>`,
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
+	},
+	{
+		version: '0.7.10', 
+		title: 'Changes in v', 
+		intro: 'Attendance Summaries the HTML reports:', 
+		body: `<li>HTML reports: You can now summarize the results from multiple Meets into a single report and the export that results as a static HTML file - for entire classes or just a specific student
+		<p><a class='gma-video-link' href='https://youtu.be/91016x4w-i8' target='_blank'>See a video about these changes</a></p>`,
+		footer: "Click the next <img id='nav-btn'> button above to see changes in earlier versions."
+	},
 	{
 		version:'0.7.9', 
 		title:'Changes in v', 
@@ -8,7 +46,7 @@ let updateSummary=[
 		<li>HTML reports: If there is something odd in the data, it is now noted below the table - e.g., duplicated, missing or mismatched names, etc.
 		<li>HTML reports: At the bottom of the reports page, I've added a button that allows you to update older report files to the newest format... see the video for details
 		<p><a class='gma-video-link' href='https://youtu.be/jgRoR2hOmDw' target='_blank'>See a video about these changes</a></p>`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.7.7 & 0.7.8', 
@@ -23,7 +61,7 @@ let updateSummary=[
 		<li>HTML report: Added a field for the logs (if the setting is enabled)
 		<li>A minor under-the-cover data structure change to better handle the situation where you have multiple Meets running on the same devices and google supplied identifiers for meeting participants
 		<p><a class='gma-video-link' href='https://youtu.be/lzOZ0bpxTic' target='_blank'>See a video about these changes</a></p>`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.7.4, 0.7.5 & 0.7.6', 
@@ -36,7 +74,7 @@ let updateSummary=[
 		<li>Found and fixed an oops mistake in the CSS (v0.7.5)
 		<li>Fixed a (gross) translation error in Spanish
 		<p><a class='gma-video-link' href='https://youtu.be/AxDIYkhtODU' target='_blank'>See a video about these changes</a></p>`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.7.3', 
@@ -45,7 +83,7 @@ let updateSummary=[
 		body:`<li class='important-msg'>the Privacy Policy was updated to indicate it <i>might be updated from time to time</i>
 		<li>A small translation change for the Brazilian UI
 		<li>Added a small visual clue as to whether monitoring is enabled`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.7.2', 
@@ -56,7 +94,7 @@ let updateSummary=[
 		<li>fixed a bug in the hover text in the HTML report that showed incorrect values if a student exited & rejoined the Meet
 		<li>changed the HTML file to better highlight students who leave & re-enter a Meet & added the number of re-entries to the hover text
 		<li> .1 --> small translation change for Brazilian UI`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.7.1', 
@@ -68,7 +106,7 @@ let updateSummary=[
 		<li>auto save the HTML and/or CSV files<br/>
 		<li>auto close the updates dialog after a set number of seconds<br/>(enter 0 to hide the updates completely)
 		</ul>`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.7.0', 
@@ -82,7 +120,7 @@ let updateSummary=[
 
 		<li>Added charset delaration to HTML reports so that chars appear properly and a legend at the bottom of the page
 		`,
-		footer:"Click the next <span class='nav-btn'>></span> button above to see changes in earlier versions."
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{
 		version:'0.6.4', 
@@ -153,8 +191,8 @@ let installSummary=[
 		title:'Getting Started...', 
 		intro:'The next couple of pages give a quick overview of the ins & outs of this extension.', 
 		body:`<li>Click the blue question mark in the bottom right corner of this dialog to see this information again
-		<li>Click the next <span class='nav-btn'>></span> and previous <span class='nav-btn'><</span> buttons to see additional help topics in this dialog
-		<li>For a more detailed description, checkout the videos at my <a href='https://www.youtube.com/channel/UCcD48u9-OBB8HefX4P3KGgQ' target='_blank'>YouTube channel</a>** or visit the <a href='https://www.facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.
+		<li>Click the next <img id='nav-btn'> and previous <span class='nav-btn'><</span> buttons to see additional help topics in this dialog
+		<li>For a more detailed description, checkout the videos at my <a href='https://www.youtube.com/c/AllanCaughey/' target='_blank'>YouTube channel</a>** or visit the <a href='https://www.facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.
 		<li>I post updates to the Facebook page on a regular basis.`, 
 		footer:''
 	},
@@ -268,7 +306,7 @@ let settingsTab=[
 		title:'Tweak your settings', 
 		intro:"Adjust the settings below as per your needs:", 
 		body:``, 
-		footer:"<p class='warning'>Currently, the Settings cannot be changed once your Meet has started...(I hope to fix this soon)</p>"
+		footer:"<p>You can now alter the settings while in a Meet!!!</p>"
 	},
 ]
 
@@ -290,21 +328,27 @@ function hideUpdateText(){
 		document.getElementById("gma-attendance-fields").classList.add('in-meeting')
 	}
 }
-function hideUpdateTimeOut(){
+
+function clearOtherTimers(){
+	if(typeof(updateDialogTimeout)!='undefined'){
+		clearTimeout(updateDialogTimeout)
+		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',0)
+	}
+}
+function hideUpdateTimeOut(d){
 	updateDialogTimeout=window.setTimeout(function(){
-		let csec = document.getElementById('auto-hide-count-down').innerText*1
-		if( csec === 0 ){
+		document.getElementById('auto-hide-count-down').innerText=d
+		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down', d)
+		if( d === 0 ){
 			hideUpdateText();
 		}
 		else{
-			document.getElementById('auto-hide-count-down').innerText=csec-1
-			document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',csec-1)
-			hideUpdateTimeOut()
+			hideUpdateTimeOut( d*1-1 )
 		}
 	},1000)
 }			   
 
-function showHelpPage( pn ){
+function showHelpPage( pn, d ){
 	let ht=document.getElementById('gma-messages-div').getAttribute("showing")
 	let whichArr
 	if(ht==='install'){
@@ -320,14 +364,39 @@ function showHelpPage( pn ){
 		whichArr=meetStart
 	}
 	let hp=whichArr[pn]
+	let ul=hp.updateType||0
 	document.getElementById('gma-messages-div').setAttribute("page", pn); 
 	document.getElementById('messages-page-title').innerHTML=hp.title+hp.version
 	document.getElementById('help-page-intro').innerHTML=hp.intro
 	document.getElementById('help-page-body').innerHTML=hp.body
 	document.getElementById('help-page-footer').innerHTML=hp.footer||''
+	if(!!document.getElementById('nav-btn'))document.getElementById('nav-btn').src=chrome.runtime.getURL("images/next-page.png")
+
+	if(pn==0){
+		if( ul == 2 || !d ){
+			document.getElementById('gma-class-list-div').style.display='none'
+			document.getElementById('gma-messages-div').style.display='block'
+			return
+		}
+		if( ul == 1  ){
+		document.getElementById('gma-class-list-div').style.display='none'
+			document.getElementById('gma-messages-div').style.display='block'
+			hideUpdateTimeOut(15)
+			return			
+		}
+		if ( ul == 0 && d == 0 ){
+			document.getElementById('gma-class-list-div').style.display='block'
+			document.getElementById('gma-messages-div').style.display='none'
+			return
+		}
+		document.getElementById('gma-class-list-div').style.display='none'
+		document.getElementById('gma-messages-div').style.display='block'
+		hideUpdateTimeOut(d)
+	}
 }
 
 function showPrevHelp(){
+	clearOtherTimers()
 	document.getElementById('prev-page').style.visibility='visible'
 	document.getElementById('next-page').style.visibility='visible'
 	let pn=document.getElementById('gma-messages-div').getAttribute("page")
@@ -337,6 +406,7 @@ function showPrevHelp(){
 	showHelpPage( npn )
 }
 function showNextHelp(){
+	clearOtherTimers()
 	document.getElementById('prev-page').style.visibility='visible'
 	document.getElementById('next-page').style.visibility='visible'
 	let ht=document.getElementById('gma-messages-div').getAttribute("showing")
@@ -348,40 +418,40 @@ function showNextHelp(){
 	showHelpPage( npn )
 }
 
-function showInstall(e){
+function showInstall( e ){
 	var thisVersion = chrome.runtime.getManifest().version;
-	duration=typeof(e)==='number'?e:0
-	chrome.storage.sync.get(['__GMA_status'], function(r){
-		document.getElementById('gma-messages-div').setAttribute("showing", "install")
-		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',duration)
 
-		document.getElementById('gma-class-list-div').style.display='none'
-		document.getElementById('gma-messages-div').style.display='block'
+	clearOtherTimers()
+
+	chrome.storage.sync.get(['__GMA_status', 'auto-hide-updates'], function(r){
+		document.getElementById('gma-messages-div').setAttribute("showing", "install")
+
 		document.getElementById('prev-page').style.visibility='hidden'
 		document.getElementById('next-page').style.visibility='visible'
 		document.getElementById('messages-title').innerText='New Installation'
-		showHelpPage(0)
-		document.getElementById('auto-hide-count-down').innerText=duration
+		let duration=null
+		if(typeof(e)!='object'){
+			duration=45
+		}
+		showHelpPage( 0, duration )
 	})
 }
 
 function showUpdate(e){
 	var thisVersion = chrome.runtime.getManifest().version;
-	duration=typeof(e)==='number'?e:0
-	//console.log('showUpdate',duration, typeof(e))
-	chrome.storage.sync.get(['__GMA_status'], function(r){
+	
+	clearOtherTimers()
+	
+	chrome.storage.sync.get(['__GMA_status', 'auto-hide-updates'], function(r){
 		document.getElementById('gma-messages-div').setAttribute("showing", "updates")
-		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',duration)
-		//console.log('showUpdate:: Updated to ' + thisVersion)
-
-		document.getElementById('gma-class-list-div').style.display='none'
-		document.getElementById('gma-messages-div').style.display='block'
 		document.getElementById('prev-page').style.visibility='hidden'
 		document.getElementById('next-page').style.visibility='visible'
 		document.getElementById('messages-title').innerText='Update: v'+chrome.runtime.getManifest().version
-
-		showHelpPage(0)
-		document.getElementById('auto-hide-count-down').innerText=duration
+		let duration=null
+		if(typeof(e)!='object'){
+			duration=r['auto-hide-updates']||10
+		}
+		showHelpPage( 0, duration )
 	})
 }
 
@@ -389,40 +459,69 @@ function showSettings(){
 	// create settings options
 	function addSettingsOption(n){
 		let nm=settingsArray[n].name, ty=settingsArray[n].type, ti=settingsArray[n].title, te=settingsArray[n].text 
-		addElement(document.getElementById('help-page-body'),'label',nm+'-label',ti,'settings-label',te)
-		addElement(document.getElementById(nm+'-label'),'input',nm,'')
-		document.getElementById(nm).type = ty
-		document.getElementById(nm).addEventListener('change', saveSettings, false);				
-		document.getElementById(nm).onmousedown = stopProp;
-		let son=[]
-		son.push(nm)
-		chrome.storage.sync.get(son, function(r){
-			if ( ty==='checkbox'){
-				document.getElementById(nm).checked=r[nm]
+		if(ty==='button'){
+			addElement(document.getElementById('help-page-body'),'span',nm+'-label',ti,'settings-label',te)
+			addElement(document.getElementById(nm+'-label'),'button',nm,'')
+			document.getElementById(nm).innerText=te.split(' ')[0]
+			if( nm==='backup-class-lists' ){
+				document.getElementById(nm).addEventListener('click', backupClassLists, false)
+			}
+		}
+		else{
+			
+			if(ty==='radio'){
+				te=te.split('|')
+				addElement(document.getElementById('help-page-body'),'span',nm+'-label',ti,'settings-label',te[0])
+				for( let n=1;n<te.length; n++ ){
+					let rbn=nm+'-'+te[n]
+					addElement(document.getElementById(nm+'-label'),'label',rbn,'')
+					addElement(document.getElementById(rbn),'input','radio-'+rbn,'','',te[n])
+					addElement(document.getElementById(rbn),'span','','','',te[n])
+					document.getElementById('radio-'+rbn).type = ty
+					document.getElementById('radio-'+rbn).name = nm
+					document.getElementById('radio-'+rbn).value = te[n]
+					document.getElementById('radio-'+rbn).addEventListener('change', saveSettings, false)
+				}
 			}
 			else{
-				document.getElementById(nm).value=r[nm]				
+				addElement(document.getElementById('help-page-body'),'label',nm+'-label',ti,'settings-label',te)
+				addElement(document.getElementById(nm+'-label'),'input',nm,'')
+				document.getElementById(nm).type = ty
+				document.getElementById(nm).addEventListener('change', saveSettings, false)
+				document.getElementById(nm).onmousedown = stopProp;
 			}
-		})
+			let son=[]
+			son.push(nm)
+			chrome.storage.sync.get(son, function(r){
+				let tv=r[nm]||(!settingsArray[n].default_value?'':settingsArray[n].default_value)
+				if ( ty==='checkbox'){
+					document.getElementById(nm).checked=tv
+				}
+				else if ( ty==='radio'){
+					document.getElementById('radio-'+nm+'-'+tv).checked=true
+				}
+				else{
+					document.getElementById(nm).value=tv			
+				}
+			})
+		}
 	}
 	
-	if(typeof(updateDialogTimeout)!='undefined'){
-		clearTimeout(updateDialogTimeout)
-		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',0)
-	}
+	clearOtherTimers()
+
 	document.getElementById('gma-messages-div').setAttribute("showing", "settings")
-	document.getElementById('gma-class-list-div').style.display='none'
-	document.getElementById('gma-messages-div').style.display='block'
 	document.getElementById('prev-page').style.visibility='hidden'
 	document.getElementById('next-page').style.visibility='hidden'
 	document.getElementById('messages-title').innerText='Settings'
 
 	let settingsArray=[ 
-		{name:'monitor-attendance',type:'checkbox', title:'Monitor who is present on the call', text:'Monitor attendance (recommended):'},
-		{name:'auto-clear-checks',type:'checkbox',title:'Automatically remove checks from previous Meet', text:'Automatically remove previous Meet checks (recommended):'},
-		{name:'auto-save-html',type:'checkbox',title:'Automatically save HTML file', text:'Auto-save the HTML file:'},
+		{name:'auto-clear-checks',type:'checkbox',title:'Automatically remove checks from previous Meet', text:'Automatically remove previous Meet checks (recommended):', default_value:true},
+		{name:'auto-save-html',type:'checkbox',title:'Automatically save HTML file', text:'Auto-save the HTML file:', default_value:true},
 		{name:'auto-save-csv',type:'checkbox',title:'Automatically save CSV file', text:'Auto-save the CSV file:'},
-		{name:'auto-hide-updates',type:'number',title:'Automatically close the updates window', text:'Auto-hide the updates window after:'},
+		{name:'auto-hide-updates',type:'number',title:'Automatically close the updates window', text:'Auto-hide the updates window after:', default_value:10},
+		{name:'max-num-names',type:'number',title:'This is an arbitrary upper limit', text:'Maximum number of names in a class:', default_value:256},
+		{name:'sort-names',type:'radio',title:'Set the sort order for the names', text:'Sort names by:|first|last|none', default_value:'none'},
+		{name:'backup-class-lists',type:'button',title:'Save a copy of your class names and class lists', text:'Back-up class names and lists:'},
 		{name:'generate-log',type:'checkbox',title:'Generate a log of key events during your Meet for debugging purposes', text:'Generate logs (only if requested by Al):'},
 	]
 
@@ -438,10 +537,8 @@ function showSettings(){
 
 function showMeetingStarted(){
 	//console.log('showMeetingStarted')
-	if(typeof(updateDialogTimeout)!='undefined'){
-		clearTimeout(updateDialogTimeout)
-		document.getElementById('messages-div-footer').setAttribute('auto-hide-count-down',0)
-	}
+
+	clearOtherTimers()
 	
 	document.getElementById('gma-messages-div').setAttribute("showing", "start-meeting"); 
 	document.getElementById('gma-messages-div').style.display='block'
@@ -450,55 +547,53 @@ function showMeetingStarted(){
 	document.getElementById('next-page').style.visibility='hidden'
 	document.getElementById('messages-title').innerText='Meeting Start'
 
-	showHelpPage(0)
+	showHelpPage(0, 20)
 
-	chrome.storage.sync.get(['monitor-attendance'], function(r){
-		let monitorChecked=r['monitor-attendance']
+	let gmgv=document.getElementsByClassName('__gmgv-button'), gmgvNotCorrect=''
+	let nstu=document.getElementById('invited-list').value.split('\n').length
+	let now = new Date(), timeNow = now.getHours()+':'+twod(now.getMinutes())
+	
+	let hpb=document.getElementById('help-page-body')
+	addElement(hpb,'li','','','',"Your Meet start-time is set to <span id='current-start-time'></span> and it is now <span id='current-time'></span>.<br/>If your  start-time is not correct, click <span id='resetStartTime'></span>.")
 
-		let gmgv=document.getElementsByClassName('__gmgv-button'), gmgvNotCorrect=''
-		let nstu=document.getElementById('invited-list').value.split('\n').length
-		let now = new Date(), timeNow = now.getHours()+':'+twod(now.getMinutes())
-		
-		let hpb=document.getElementById('help-page-body')
-		addElement(hpb,'li','','','',"Your Meet start-time is set to <span id='current-start-time'></span> and it is now <span id='current-time'></span>.<br/>If your  start-time is not correct, click <span id='resetStartTime'></span>.")
-		if(!monitorChecked){
-			write2log( 'Monitor checkbox not selected ' )
-			addElement(hpb,'li','','','warning',"The monitor attendance checkbox is <b><u>not</u></b> selected on the Settings tab<p>This means that the reports will only show the students' arrival times (and <b><u>won't</u></b> include the duration of stay, etc.).</p><p>If you want to enable monitoring, you must exit the Meet, click the checkbox the Settings tab in the Attendance dialog and then re-join the meet")		
-		}
-		else {
-
-			addElement(hpb,'li','','','',"The monitor attendance checkbox <b><u>is</u></b> selected on the Settings tab")			
-		}
-		addElement(hpb,'li','','','',"<b>Remember</b>: to correctly take and monitor attendance, all students <b><u>must</u></b> be visible in your Meet window for the entire duration of your class")			
-		if(nstu<16){
-			write2log( 'Class smaller than 16... use Tiled layout ' )
-			addElement(hpb,'p','','','',"Your class is small enough to use the built-in Tiled layout.<br/>Please confirm that you are using this layout by clicking the vertical ellipsis \'&vellip;\' in the bottom right corner of the screen and choosing `Change layout` (or make sure the Grid View extension is installed & enabled).")
+	addElement(hpb,'li','','','',"<b>Remember</b>: to correctly take and monitor attendance, all students <b><u>must</u></b> be visible in your Meet window for the entire duration of your class")			
+	if(nstu<16){
+		write2log( 'Class smaller than 16... use Tiled layout ' )
+		addElement(hpb,'p','','','',"Your class is small enough to use the built-in Tiled layout.<br/>Please confirm that you are using this layout by clicking the vertical ellipsis \'&vellip;\' in the bottom right corner of the screen and choosing `Change layout` (or make sure the Grid View extension is installed & enabled).")
+	}
+	else{
+		addElement(hpb,'p','','','',"Your class is larger than 16 students so you <b><u>must</u></b> use the Grid View extension.")
+		if(gmgv.length===0){
+			write2log( 'Class larger than 16... Grid View is not installed' )
+			addElement(hpb,'p','','','warning',"It appears that you have not installed (or perhaps have disabled) the Grid View extension.")		
+			addElement(hpb,'p','','','',"The Grid View extension can be downloaded <a href='https://chrome.google.com/webstore/detail/google-meet-grid-view/kklailfgofogmmdlhgmjgenehkjoioip?authuser=0&hl=en' target='_blank'>here</a></p>")	
 		}
 		else{
-			addElement(hpb,'p','','','',"Your class is larger than 16 students so you <b><u>must</u></b> use the Grid View extension.")
-			if(gmgv.length===0){
-				write2log( 'Class larger than 16... Grid View is not installed' )
-				addElement(hpb,'p','','','warning',"It appears that you have not installed (or perhaps have disabled) the Grid View extension.")		
-				addElement(hpb,'p','','','',"The Grid View extension can be downloaded <a href='https://chrome.google.com/webstore/detail/google-meet-grid-view/kklailfgofogmmdlhgmjgenehkjoioip?authuser=0&hl=en' target='_blank'>here</a></p>")	
-			}
-			else if(gmgv[0].innerHTML.indexOf('M10,4V8H14V4H10M16')==-1){
+			if(gmgv[0].innerHTML.indexOf('M10,4V8H14V4H10M16')==-1){
 				write2log( 'Class larger than 16... Grid View is not enabled' )
 				addElement(hpb,'li','','','warning',"It appears that the Grid View extension is installed but might not be enabled.  Please check again to ensure that Grid View enabled.")		
 			}
+			if(document.querySelector('[data-gmgv-setting="show-only-video"]').checked){
+				write2log( 'Class larger than 16... Grid View is not enabled' )
+				addElement(hpb,'li','','','warning',"The Show only participants with video option <b><u>cannot</u></b> be checked as only those students will be marked present!")		
+			}
 		}
-				
-			
-		addElement(hpb,'li','','','',"If you must present content from your computer, I suggest that you share a separate window or a second screen.")		
+		document.querySelector('[data-gmgv-setting="show-only-video"]').checked
 
-		document.getElementById('current-start-time').innerText=sessionStorage.getItem('Meeting-start-time') 
-		document.getElementById('current-time').innerText=timeNow
-		let updateHTML=`<p></p>`+gmgvNotCorrect+`
+	}
+			
 		
-		<p></p>
-		`
-		//document.getElementById('messages-div-body').innerHTML=updateHTML
-		
-		document.getElementById('resetStartTime').appendChild(document.getElementById('start-time').cloneNode(true))
-		document.getElementById('resetStartTime').addEventListener('click', setStartTime, false)
-	})
+	addElement(hpb,'li','','','',"If you must present content from your computer, I suggest that you share a separate window or a second screen.")		
+
+	document.getElementById('current-start-time').innerText=sessionStorage.getItem('Meeting-start-time') 
+	document.getElementById('current-time').innerText=timeNow
+	let updateHTML=`<p></p>`+gmgvNotCorrect+`
+	
+	<p></p>
+	`
+	//document.getElementById('messages-div-body').innerHTML=updateHTML
+	
+	document.getElementById('resetStartTime').appendChild(document.getElementById('start-time').cloneNode(true))
+	document.getElementById('resetStartTime').addEventListener('click', setStartTime, false)
+
 }

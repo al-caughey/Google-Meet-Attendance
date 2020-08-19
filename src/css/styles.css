@@ -141,13 +141,13 @@
 	color:green;
 	background-color: silver;
 }
-#monitor-attendance {
-    height: 15px;
+#gma-attendance-fields [type="checkbox"] {
+    height: 14px;
     opacity: unset;
 	pointer-events: unset;
     position: unset;
     vertical-align: middle;
-    width: 15px;
+    width: 14px;
 }
 #gma-footer{
     background: linear-gradient(#DDD, #999);
@@ -165,11 +165,17 @@
 #gma-version:hover{
 	cursor: pointer;
 }
-#gma-help, #close-settings, #close-help {
+#close-settings, #close-help {
+    position: absolute;
+	right: 0px;
+    top: 4px;
+}
+#gma-help {
     position: absolute;
     right: 12px;
     top: 0px;
 }
+
 #gma-settings {
     position: absolute;
     right: 42px;
@@ -225,9 +231,12 @@ div#gma-attendance-fields-body {
 .in-meeting #p-attendance-summary, .meeting-over #p-attendance-summary {
 	display: block;
 }
+.in-meeting .nim{
+	visibility: hidden!important;
+} 
 .in-meeting [showing="settings"] label {
-    cursor: wait;
-	pointer-events: none;
+    //cursor: wait;
+	//pointer-events: none;
 }
 [showing="settings"] #help-page-footer {
 	display: none;
@@ -277,15 +286,10 @@ div#gma-attendance-fields-body {
 #sp-start-time:before {
     content: 'Start: ';
 }
-.monitoring-active #sp-duration:before {
+#sp-duration:before {
     content: "✔  Duration: ";
     color: unset;
     font-weight: normal;
-}
-#sp-duration:before {
-    content: "* Duration: ";
-    color: red;
-    font-weight: bold;
 }
 #sp-duration:after {
     content: 'min';
@@ -320,16 +324,9 @@ div#gma-attendance-fields-body {
 	color: darkred;
 	font-weight: bold;
 }
-.nav-btn {
-    border: 2px solid gray;
-    border-radius: 50%;
-    display: inline-block;
-    font-size: 13px;
-    font-weight: bold;
-    height: 12px;
-    padding-bottom: 2px;
-    text-align: center;
-    width: 12px;
+#nav-btn {
+    height: 15px;
+    vertical-align: top;
 }
 [auto-hide-count-down="0"] #auto-hide-text {
     display: none;
@@ -342,6 +339,10 @@ li.warning p {
     font-weight: bold;
     color: darkblue;
 }
+
+#help-page-body {
+    padding-left: 20px;
+}
 #help-page-body p{
 	margin: 6px 0;
 }
@@ -349,12 +350,75 @@ li.warning p {
 	display: block;
 	cursor: pointer;
 }
-.settings-label input{
+.settings-label input, .settings-label button{
 	margin-left: 8px;
 }
-#auto-hide-updates {
+ .settings-label button{
+	cursor: pointer;
+}
+#auto-hide-updates{
+	text-align: right;
     width: 32px;
+}
+#max-num-names{
+	text-align: right;
+    width: 38px;
 }
 #auto-hide-updates-label::after {
     content: ' seconds';	
+}
+
+#gma-attendance-fields h2 {
+    font-size: revert;
+    font-weight: revert;
+}
+
+.gma-toggle{
+	cursor: pointer;
+    opacity: .8;
+	margin-left: 8px;
+	position:relative;
+}
+.gma-toggle:hover {
+    opacity: 1;
+}
+.in-meeting .gma-toggle{
+	display: none;
+}
+.gma-toggle-bar {
+    background-color: #1a73e8;
+    border-radius: 8px;
+    display: inline-block;
+    height: 12px;
+	opacity:.5;
+    width: 28px;
+}
+.gma-toggle-ball {
+    background-color: #1a73e8;
+    border-radius: 8px;
+	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .4);
+    display: inline-block;
+    height: 16px;
+    position: absolute;
+    top: 0;
+	right: 0;
+    width: 16px;
+}
+[data-enabled="false"]  .gma-toggle-bar {
+	 background-color: #bdc1c6;
+	 transition: transform linear 80ms, background-color linear 80ms;
+}
+[data-enabled="false"]  .gma-toggle-ball {
+	 background-color: #fff;
+	 left: 0;
+	 transition: transform linear 80ms, background-color linear 80ms;
+}
+[data-at-max-students="true"] #invited-list {
+    background: pink;
+    cursor: help;
+}
+label#generate-log-label {
+    border-top: 1px solid;
+    margin-top: 10px;
+    padding-top: 6px;
 }

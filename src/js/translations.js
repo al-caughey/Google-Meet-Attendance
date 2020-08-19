@@ -27,6 +27,7 @@ function getMeetUIStrings(){
 	let lang = document.documentElement.lang.split('-')[0]||'en'
 	if( !meetUIStrings[lang] ) lang = 'en'
 	meetUIStrings[lang].more='(\\b\\w)? \\w* \\d+.*'
+	meetUIStrings[lang].keep_off='keep_off' //placeholder to exclude spurious keep_off entries
 	write2log('Using UI strings for ' + lang )
 	return meetUIStrings[lang]
 }
