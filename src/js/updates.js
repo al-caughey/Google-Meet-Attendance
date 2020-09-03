@@ -5,6 +5,31 @@
 */
 let updateSummary=[
 	{
+		version: '0.9.0', 
+		title: 'Changes in v', 
+		updateType: 1,
+		intro: "Added class notes and 'alternate' names", 
+		body: `<li>There is a new field in the attendance dialog so that you can add little notes to remind you of significant moments after the fact.  This field will be displayed during and after the Meet. The notes will appear above the table in the HTML reports.
+		<li>You can now 'alias' the student sign-in names to something else... just start the row in the attendance field with the preferred display name and the add the sign-in name in brackets<br/>Al C (Allan Caughey)... the HTML report will show just the 'display' names
+		<li>Related to the one above, text wrapped in square brackets is ignored (at least one school system appends [student] to the students' names and this causes incorrect results when the names are sort)
+		<li>fixed the issue that showed the students as absent while the teacher was presenting
+		<li>fixed an issue if the names were listed as 'last, first' --> the comma in the name messed up the HTML reports
+		<li>fixed an issue that possibly resulted in a negative meeting length (oops!)
+		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a>.</p>`,
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
+	},
+	{
+		version: '0.8.1/0.8.2', 
+		title: 'Changes in v', 
+		updateType: 0,
+		intro: "CSS changes and a small regular expression change; fixed default values for Settings", 
+		body: `<li>v0.8.2 - fixed a small logic flaw that resulted in two copies of the files being autosaved (and a few other minor changes to when save reminders get posted)
+		<li>Bit the bullet and updated my CSS code so that 'offending' libraries in other extensions do not break the way that this one displays (e.g., Meet Attendance and Google Meet Plus)
+		<li>Fixed a logic flaw for default values in the Settings (which may have resulted in missing HTML/CSV files if the Meet tab was closed rather than properly ending the Meet).
+		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a>.</p>`,
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
+	},
+	{
 		version: '0.8.0', 
 		title: 'Changes in v', 
 		updateType: 1,
@@ -189,8 +214,9 @@ let installSummary=[
 	{
 		version:'', 
 		title:'Getting Started...', 
-		intro:'The next couple of pages give a quick overview of the ins & outs of this extension.', 
-		body:`<li>Click the blue question mark in the bottom right corner of this dialog to see this information again
+		intro:"Contragulations!  If you are seeing this dialog, it means that you've completed the first step to tracking attendance during your Google Meet classes.", 
+		body:`<li>If you have fewer 16 students in your classes, you're good to good to go.., just make sure that you select the 'Tiled' layout when you start your Google Meet.  The number of Tiled students is expected to increase to 49 in the coming weeks, but in the interim...
+		<li class='warning'>If you have more than 16 students in your classes, you <b>*<u>must</u>*</b> also install the <a href='' target='_blank'>Grid View (fix)</a> extension and must make sure that the <i>'Show only participants with video'</i> option in the Grid View menu is <b>deselected</b>.
 		<li>Click the next <img id='nav-btn'> and previous <span class='nav-btn'><</span> buttons to see additional help topics in this dialog
 		<li>For a more detailed description, checkout the videos at my <a href='https://www.youtube.com/c/AllanCaughey/' target='_blank'>YouTube channel</a>** or visit the <a href='https://www.facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.
 		<li>I post updates to the Facebook page on a regular basis.`, 
@@ -293,7 +319,7 @@ let installSummary=[
 		version:'', 
 		title:"Last thoughts...", 
 		intro:"Thank you so much for installing my extension! I'm overwhelmed by the fact that it's approaching 100,000 weekly users!!!",
-		body:`<p>I am exceptionally fortunate to live in an area where we've not been badly affected by Covid-19.  I've had a conversations with teachers from around the globe who are working under very difficult circumstances.I hope/trust that you are doing what you can to keep yourself, your family and your students stay safe and sane.</p>
+		body:`<p>I am exceptionally fortunate to live in an area where we've not been badly affected by Covid-19.  I've had a conversations with teachers from around the globe who are working under very difficult circumstances. I hope/trust that you are doing what you can to keep yourself, your family and your students stay safe and sane.</p>
 		<p>I'm keen to hear your feedback... please share your constructive criticism and opinions at my <a href='https://www.facebook.com/GoogleMeetAttendance/' target="_blank">Facebook page</a>.  Or in a pinch, at <a id='questions' target='_blank' href='mailto:al@caughey.ca?subject=Questions/Feedback about the Attendance extension&body=Please provide as much information in this email as possible - for example: a description of the problem, screenshots that highlight the issue.  It would be *really* helpful if you also attached the HTML file in question.%0D%0A%0D%0AThanks for your assistance%0D%0A%0D%0AAl'>my personal address </a>.</p>
 `, 
 		footer: ``
@@ -458,7 +484,7 @@ function showUpdate(e){
 function showSettings(){
 	// create settings options
 	function addSettingsOption(n){
-		let nm=settingsArray[n].name, ty=settingsArray[n].type, ti=settingsArray[n].title, te=settingsArray[n].text 
+		let nm=settingsArray[n].name, ty=settingsArray[n].type, ti=settingsArray[n].title, te=settingsArray[n].text, dv=settingsArray[n].default_value
 		if(ty==='button'){
 			addElement(document.getElementById('help-page-body'),'span',nm+'-label',ti,'settings-label',te)
 			addElement(document.getElementById(nm+'-label'),'button',nm,'')
@@ -489,11 +515,13 @@ function showSettings(){
 				document.getElementById(nm).type = ty
 				document.getElementById(nm).addEventListener('change', saveSettings, false)
 				document.getElementById(nm).onmousedown = stopProp;
+				document.getElementById( nm ).setAttribute('placeholder', dv )
 			}
 			let son=[]
 			son.push(nm)
 			chrome.storage.sync.get(son, function(r){
-				let tv=r[nm]||(!settingsArray[n].default_value?'':settingsArray[n].default_value)
+				//let tv=r[nm]==='undefined'||(!settingsArray[n].default_value?'':settingsArray[n].default_value)
+				let tv=typeof(r[nm])==='undefined'?(!dv?'':dv):r[nm]
 				if ( ty==='checkbox'){
 					document.getElementById(nm).checked=tv
 				}
@@ -513,17 +541,6 @@ function showSettings(){
 	document.getElementById('prev-page').style.visibility='hidden'
 	document.getElementById('next-page').style.visibility='hidden'
 	document.getElementById('messages-title').innerText='Settings'
-
-	let settingsArray=[ 
-		{name:'auto-clear-checks',type:'checkbox',title:'Automatically remove checks from previous Meet', text:'Automatically remove previous Meet checks (recommended):', default_value:true},
-		{name:'auto-save-html',type:'checkbox',title:'Automatically save HTML file', text:'Auto-save the HTML file:', default_value:true},
-		{name:'auto-save-csv',type:'checkbox',title:'Automatically save CSV file', text:'Auto-save the CSV file:'},
-		{name:'auto-hide-updates',type:'number',title:'Automatically close the updates window', text:'Auto-hide the updates window after:', default_value:10},
-		{name:'max-num-names',type:'number',title:'This is an arbitrary upper limit', text:'Maximum number of names in a class:', default_value:256},
-		{name:'sort-names',type:'radio',title:'Set the sort order for the names', text:'Sort names by:|first|last|none', default_value:'none'},
-		{name:'backup-class-lists',type:'button',title:'Save a copy of your class names and class lists', text:'Back-up class names and lists:'},
-		{name:'generate-log',type:'checkbox',title:'Generate a log of key events during your Meet for debugging purposes', text:'Generate logs (only if requested by Al):'},
-	]
 
 	showHelpPage(0)
 	for(let n in settingsArray){

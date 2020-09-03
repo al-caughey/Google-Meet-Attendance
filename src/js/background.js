@@ -18,3 +18,8 @@ chrome.runtime.onInstalled.addListener(function(details){
 		//console.log("Updated from " + details.previousVersion + " to " + thisVersion + "!")
     }
 });
+
+
+/*chrome.runtime.connect().onDisconnect.addListener(function() {
+    console.log('Uh-oh!  Extension was disconnected')
+})*/

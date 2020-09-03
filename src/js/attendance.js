@@ -206,35 +206,35 @@
 		let today = new Date(), d = today.getDate(),m = today.getMonth()+1,y = today.getFullYear()
 		let cdate = y+'-'+twod(m)+'-'+twod(d)
 		let cdd = document.getElementById("select-class"), cn = cdd.options[cdd.selectedIndex].text;
+		let fileName=cn + ' ('+cdate+').csv'
+		
 		// prepend file outputs with UTF-8 BOM
 		let header = '\ufeff'+'Attendance for: '+cn+' on '+cdate+'\n\n'+'Names'+'\t'+cdate+' '+sessionStorage.getItem('Meeting-start-time')+'\t'+'Arrival time'+'\n'
 		let joined = /^\s*([✔\?])(\s*)(.*)$/gm
 		let txt = document.getElementById('invited-list').value.replace(joined, "$3"+'\t'+"$1")
-
 		for (let pid in _arrivalTimes){
 			let re_name = new RegExp('('+_arrivalTimes[pid].name+'.*)', 'i')
 			txt = txt.replace(re_name, '$1'+'\t'+_arrivalTimes[pid].arrived +' ('+_arrivalTimes[pid].stayed+'min) ['+_arrivalTimes[pid].last_seen+']')
 		}
-		let blob = new Blob([header+txt], {type: 'text/plain;charset = utf-8'})
+		let blob = new Blob([header+txt], {type: 'text/plain;charset=UTF-8'})
+		
 		let temp_a = document.createElement("a")
-		temp_a.download = cn + ' ('+cdate+').csv'
+		temp_a.download = fileName
 		temp_a.href = window.webkitURL.createObjectURL(blob)
 		temp_a.click()
+		
 		write2log('Saved CSV file ' +  cn + ' ('+cdate+').csv' )
 
 		document.getElementById('save-csv-file').style.visibility = 'hidden'
-	
+		
+		//need to have messaging for the downloads api
+		/*chrome.downloads.download({
+			url: window.URL.createObjectURL(blob),
+			filename: fileName,
+			saveAs: true
+		})*/
 	}
 	
-	// update the attendance summary tab
-	function updateAttendanceSummary(){
-		let cl=document.getElementById('invited-list').value
-		let marked_present = (!!cl.match(/[✔\?]/g))?cl.match(/[✔\?]/g).length:0
-		let total_invited = (!!cl.replace(/\n\n/gm,'\n').match(/[\n]/g))?cl.replace(/\n\n/gm,'\n').match(/[\n]/g).length:0
-		document.getElementById('attendance-summary').innerHTML = marked_present+' of ' +(total_invited+1)+ ' participants'
-		if(!!document.getElementById('show-gma-attendance-fields')) document.getElementById('show-gma-attendance-fields').title = "Present "+marked_present+' of ' +(total_invited+1)+ ' participants'
-	}
-
 	// show the read file icon
 	function showReadFile(){
 		let isVis=document.getElementById('read-file-label').style.visibility
@@ -333,6 +333,8 @@
 		}
 		
 		let currentClassCode = document.getElementById('select-class').value
+		document.getElementById('class-notes').value=''
+		sessionStorage.setItem( 'class-notes', '' )
 		if(currentClassCode === '+'){
 			addClassInfo()
 		}
@@ -467,43 +469,13 @@
 			})
 		})
 	}
-	// update the sync variable when the list has changed
-	function listChanged(){
-		if (!document.getElementById('invited-list')) return
-
-		let currentClassCode = sessionStorage.getItem('_Class4ThisMeet')
-		let il = document.getElementById('invited-list'), ad = document.getElementById('gma-attendance-fields'), st = document.getElementById('save-csv-file'), ht = document.getElementById('save-html-file')
-		chrome.storage.sync.get(['sort-names'], function(r){
-			
-			let sno=r['sort-names']||'none'
-			let sortOrder='sortNamesBy'+sno
-			let ct = il.value.replace(/✔[ ]{2,}/g,'✔ ').replace(/(\w)\s*\t\s*|[ ]{2,}(\w)/g,"$1 $2").replace(/\?[ ]{2,}/g,'\? ').replace(/^[\t ]*|[\t ]*$/gm,'').replace(duplicatedLines, "$1").replace(/\n\s+/g,'\n').trim()
-			if(sno==='first'){
-				ct=ct.split('\n').sort(sortNamesByFirst).join('\n')
-			}
-			else if(sno==='last'){
-				ct=ct.split('\n').sort(sortNamesByLast).join('\n')
-			}
-			
-			if(ct === ''){
-				ad.classList.add('empty')
-				st.style.visibility = 'hidden'
-				ht.style.visibility = 'hidden'
-				il.title = 'Pick a class or enter some names'
-			}
-			else{
-				il.value = ct
-				ad.classList.remove('empty')
-				st.style.visibility = 'visible'
-				ht.style.visibility = 'visible'
-				updateAttendanceSummary()
-			}
-			let ccc={}
-			ccc['__Class-'+currentClassCode]=ct
-			chrome.storage.sync.set(ccc, callBackSet )
-			
-			checkNumStudents()
-		})
+	// class notes have changed
+	function notesChanged(){
+		let st = document.getElementById('save-csv-file'), ht = document.getElementById('save-html-file')
+		document.getElementById('class-notes').value=document.getElementById('class-notes').value.trim()
+		sessionStorage.setItem( 'class-notes', document.getElementById('class-notes').value )
+		st.style.visibility = 'visible'
+		ht.style.visibility = 'visible'
 	}
 
 	// remove all preceding ✔|? from the list of names in the textarea
@@ -538,19 +510,60 @@
  		write2log( 'Clear all names for ' + currentClassCode )
  	}
 
+	let old_lop=''
 	function checkParticipants(){
 
 		let now = new Date(), ctime = now.getHours()+':'+twod(now.getMinutes())
 
 		let tal = document.getElementById('invited-list').value
-		let tallc = tal.toLowerCase().replace(/✔[ ]{2,}/g,'✔ ').replace(/\?[ ]{2,}/g,'\? ').replace(/^[\t ]*|[\t ]*$/gm,'').split('\n')
+		let tallc = tal.toLowerCase().replace(/✔[ ]{2,}/g,'✔ ').replace(/\?[ ]{2,}/g,'\? ').replace(/^[\t ]*|[\t ]*$/gm,'').replace(/\t/gm,' ').split('\n')
 		let changed = false
 
 		let lop=getListOfParticipants()
+		//if ( old_lop === lop ) return
 		for (let pid of lop){
 			let name=_arrivalTimes[pid].name
 			let lc=name.toLowerCase()
-			
+
+			let fan=tallc.filter(element => element.includes(lc))
+			console.log(fan.length)
+			if (fan.length>1){
+				let asf=name + ' has ' + fan.length + 'matches!'
+				//write2log('checkParticipants - ' + name + ' has ' + fan.length + ' matches')
+				//console.log(asf)
+				//document.getElementById('add-class-message').innerText=asf
+				//document.getElementById('add-class-message').classList.add('bold')
+				//autoHideAddClassMessage(5000)
+				continue
+			}
+			else if (fan.length==1){
+				let nm=fan[0]
+				if(nm.includes('✔ ')){
+					continue // already marked present
+				}
+				else if(nm.includes('? ')){
+					continue // already marked uninvited
+				}
+				else{
+					let ap = tallc.indexOf(nm)
+					tallc[ap]=( '✔ '+nm	) // mark the student present
+					changed = true
+					write2log('checkParticipants - ' + name + ' arrived')
+				}
+			}
+			else if (fan.length==0){
+				if(document.getElementById('gma-attendance-fields').getAttribute('data-at-max-students')==='true'){
+					write2log('checkParticipants - at max students - ' + name + ' not added')
+				}	
+				else {  // update the field
+					tallc.push( '? '+name)
+					changed = true
+					write2log('checkParticipants - ' + name + ' was added to the class list')
+				}
+			}
+				
+		}
+			/*
 			if(tallc.includes('✔ '+lc)){
 				continue // already marked present
 			}
@@ -572,14 +585,14 @@
 					changed = true
 					write2log('checkParticipants - ' + name + ' was added to the class list')
 				}
-			}
-		}
+			}*/
 		// if the list changed, a littlehousekeeping and save the changes
 		if (changed) {
-			write2log
+			write2log('checkParticipants - list changed')
 			document.getElementById('invited-list').value = tallc.join('\n')
 			listChanged()
 			sessionStorage.setItem('_arrivalTimes', JSON.stringify(_arrivalTimes))
+			old_lop=lop
 		}
 	}
 
@@ -640,11 +653,11 @@
 			chrome.storage.sync.get(['auto-save-html','auto-save-csv'], function(r) {
 				let asf='', svn=0, asfh=5000
 				if( !!r['auto-save-html'] && gmaEnabled){
-					document.getElementById('save-html-file').click()
+					saveHTMLFile()
 					svn+=1
 				}
 				if( !!r['auto-save-csv'] && gmaEnabled){
-					document.getElementById('save-csv-file').click()
+					saveCSVFile()
 					svn+=2
 				}
 				if(!gmaEnabled){
@@ -653,12 +666,16 @@
 				else if (svn==0){
 					asf="Don't forget to save your files!"
 					asfh=30000
+					document.getElementById('save-html-file').classList.add('save-needed')
+					document.getElementById('save-csv-file').classList.add('save-needed')
 				}
 				else if(svn==1){
 					asf="Auto-saved your HTML file"
+					document.getElementById('save-csv-file').classList.add('save-needed')
 				}
 				else if(svn==2){
 					asf="Auto-saved your CSV file"
+					document.getElementById('save-html-file').classList.add('save-needed')
 				}
 				else if(svn==3){
 					asf="Auto-saved your HTML & CSV files"
@@ -723,15 +740,11 @@
 
 			// Create an observer instance to look for changes within the Meet page (detect new participants)
 			var observer = new MutationObserver(function( mutations ) {
-
 				checkParticipants()  // Check when ever there is an update to the screen
 
 			});
 			// watch for changes (adding new participants to the Meet)
-			//observer.observe(document.body, {childList:true, attributes:true, attributeFilter: ['data-self-name'], subtree:true, characterData:false});
-		
-			observer.observe(document.body, { childList:true, attributes:true, attributeFilter: ['data-self-name'], subtree:true, characterData:false });
-		
+			observer.observe(document.body, {childList:true, attributes:true, attributeFilter: ['data-self-name','data-participant-id','data-requested-participant-id'], subtree:true, characterData:false});
 			
 			showMeetingStarted() // --> updates.js
 			
@@ -756,6 +769,7 @@
 		addElement(gcld,'p','gma-class-list-header','','gma-header')
 		addElement(gcld,'p','gma-add-class','','gma-header')
 		addElement(gcld,'p','add-class-message','','')
+		addElement(gcld,'textarea','class-notes','If you want to add any notes related to this class...','')
 		addElement(gcld,'textarea','invited-list','Pick, paste or type your class list into this field','')
 		addElement(gcld,'p','p-attendance-summary','Not Monitoring Attendance!','')
 		
@@ -776,6 +790,7 @@
 		addElement(document.getElementById('enable-gma'),'span','','','gma-toggle-bar')
 		addElement(document.getElementById('enable-gma'),'span','','','gma-toggle-ball')
 
+		document.getElementById('class-notes').setAttribute('placeholder',"Enter any notes specific to this class.")
 		document.getElementById('invited-list').setAttribute('placeholder',"Your class list goes here.\nClick the blue question mark below for help.")
 		document.getElementById('read-file-label').style.backgroundImage = "url('"+chrome.runtime.getURL("images/read-file.png")+"')";
 		document.getElementById("read-file-label").htmlFor = "read-file";
@@ -846,6 +861,7 @@
 		//document.getElementById('class-name').addEventListener('blur', addClass, false)				     	// save the new named class
 		document.getElementById('add-class').addEventListener('click', addClass, false)				// clear all of the attendance markings
 		document.getElementById('cancel-add').addEventListener('click', doNotAddClass, false)				// clear all of the attendance markings
+		document.getElementById('class-notes').addEventListener('change', notesChanged, false);				// if the user edits the field
 		document.getElementById('invited-list').addEventListener('change', listChanged, false);				// if the user edits the field
 		document.getElementById('gma-version').addEventListener('click', showUpdate, false)					// manually reset the class start time
 		document.getElementById('gma-settings').addEventListener('click', showSettings, false)					// open help
@@ -853,6 +869,7 @@
 
 		document.getElementById('gma-attendance-fields').onmousedown = stopProp;
 		document.getElementById('select-class').onmousedown = stopProp;
+		document.getElementById('class-notes').onmousedown = stopProp;
 		document.getElementById('invited-list').onmousedown = stopProp;
 		document.getElementById('messages-div-body').onmousedown = stopProp;
 		document.getElementById('messages-div-body').onmousedown = stopProp;
@@ -869,13 +886,43 @@
 		write2log( 'Added Attendance dialog' )
 
 	}
-	
+
 	// add unload event to warn about unsave changes
 	window.addEventListener("beforeunload", function (e) {
 		write2log( 'Reloaded the page' )
-		if(!document.getElementById("save-csv-file") || document.getElementById("save-csv-file").style.visibility === 'hidden' && document.getElementById("save-html-file").style.visibility === 'hidden') return undefined
-		let alrt = 'It looks like you have not saved one or both of the Attendance files!'
-								+ 'If you leave before clicking `[txt]`, your attendance may be lost.';
+		if ( !gmaEnabled ) return undefined
+		let gaf=document.getElementById('gma-attendance-fields').classList
+		if( !gaf.contains('meeting-over') && !gaf.contains('in-meeting') ) return undefined
+		
+		let shf=document.getElementById('save-html-file'), scf=document.getElementById('save-csv-file')
+		let shf_is=shf.style.visibility === 'visible'
+		let scf_is=scf.style.visibility === 'visible'
+		
+		shf.classList.remove('save-needed')
+		scf.classList.remove('save-needed')
+		
+		if( _autoSaveHTML && shf_is ){
+			shf.style.visibility = 'hidden'
+			shf_is=false
+			saveHTMLFile()
+		}
+		else if( shf_is ) {
+			shf.classList.add('save-needed')
+		}
+		
+		if( _autoSaveCSV && scf_is ){
+			scf.style.visibility = 'hidden'
+			scf_is=false
+			saveCSVFile()
+		}
+		else if( scf_is ) {
+			scf.classList.add('save-needed')
+		}
+		if( !shf_is && !scf_is  ) return undefined
+		console.log('shf: ', shf_is, 'scf: ', scf_is)
+
+		let alrt = 'null message... no longer supported.';
+
 		(e || window.event).returnValue = alrt;
 		return alrt;
 	});
@@ -910,7 +957,7 @@
 			document.getElementById('select-class').value = ccc.replace(/ /g,'-')
 			document.getElementById('class-delete').style.visibility = (ccc==='Class-List')?'hidden':'visible'
 		})
-		
+		document.getElementById('class-notes').value=sessionStorage.getItem( 'class-notes' )
 		//Has the extension been updated?
 		check4Changes()
 

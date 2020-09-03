@@ -1,13 +1,13 @@
 
 // save the attendance info to an html file
 function saveHTMLFile(){
-
 	let now = new Date(), d = now.getDate(), m = now.getMonth()+1, y = now.getFullYear()
 	let ctime = now.getHours()+':'+twod(now.getMinutes())
 	let cdate = y+'-'+twod(m)+'-'+twod(d)
 	let cdd = document.getElementById("select-class"), className = cdd.options[cdd.selectedIndex].text;
-
-	if(!sessionStorage.getItem( 'Meeting-end-time')) sessionStorage.setItem( 'Meeting-end-time', ctime )
+	let cmet=sessionStorage.getItem( 'Meeting-end-time')||ctime, cmeta=cmet.split(':')
+	if (cmeta[0]*60+cmeta[1]*1 < now.getHours()*60+now.getMinutes()*1) cmet=ctime
+	sessionStorage.setItem( 'Meeting-end-time', cmet )
 
 	chrome.storage.sync.get(['saved-attendance', 'generate-log', 'monitor-attendance'], function (r) {
 		let sal=r['saved-attendance']||{}
@@ -18,7 +18,7 @@ function saveHTMLFile(){
 		if( !sal[className].includes(cdate) ) sal[className].push(cdate)
 
 		let html=htmlTemplate;
-
+		let cn=sessionStorage.getItem( 'class-notes' )||''
 		html=html.replace( '[%%classDate%%]', cdate )
 		html=html.replace( '[%%startTime%%]', sessionStorage.getItem( 'Meeting-start-time' ) )
 		html=html.replace( '[%%endTime%%]', sessionStorage.getItem( 'Meeting-end-time' ) )
@@ -26,13 +26,14 @@ function saveHTMLFile(){
 		html=html.replace( '[%%className%%]', className )
 		html=html.replace( '[%%_activeMeetID%%]', sessionStorage.getItem( '_activeMeetIDs' ) )
 
-		let classList = document.getElementById( 'invited-list' ).value.replace( /\n/gm,',').replace(/[✔\?] /g,'' )
+		let classList = document.getElementById( 'invited-list' ).value.replace( /\n/gm,';').replace(/[✔\?] /g,'' )
 		html=html.replace( '[%%dateList%%]', JSON.stringify( sal[className ] ) )
 		html=html.replace( '[%%classList%%]', JSON.stringify( classList ) )
 		html=html.replace( '[%%arrivalTimes%%]', JSON.stringify( sessionStorage.getItem( '_arrivalTimes' ) ) )
 		html=html.replace( '[%%gmaLog%%]', !r['generate-log']?'':sessionStorage.getItem( 'GMA-Log' ) )
+		html=html.replace( '[%%classNotes%%]', cn.replace( /\\n/gm, '<br/>' ).trim() )
 
-		let blob = new Blob( [html] , {type: 'text/HTML;charset=utf-8'})
+		let blob = new Blob( [html] , {type: 'text/html;charset=utf-8'})
 		let temp_a = document.createElement("a")
 		temp_a.download = filename
 		temp_a.href = window.webkitURL.createObjectURL(blob)
@@ -43,7 +44,7 @@ function saveHTMLFile(){
 		sal[className][cdate]=filename
 		chrome.storage.sync.set({'saved-attendance': sal}, null )
 		write2log('HTML file saved - ' + filename )
-	})
+})
 }
 
 let htmlTemplate=`
@@ -150,6 +151,7 @@ let htmlTemplate=`
 			let d=$('<div/>')
 			d.attr('id','student-row-header').attr('data-student-name', 'Names')
 			$('<span/>').addClass('student-name').attr('data-html', true).appendTo(d)
+			$('<span/>').addClass('student-fullname').attr('data-html', true).appendTo(d)												
 			$('<span/>').addClass('arrived-at sub-column').attr('title','Arrrived at').appendTo(d)
 			$('<span/>').addClass('stayed-for sub-column').attr('title','Length of stay in min').appendTo(d)
 			$('<span/>').addClass('last-seen sub-column').attr('title','Last seen at').appendTo(d)
@@ -211,14 +213,17 @@ let htmlTemplate=`
 				}
 			}
 			d.appendTo('#main-table')
-			let cla=classList.split(',')
+			let sep=(classList.indexOf(';')>-1)?';':','
+			let cla=classList.split(sep)
 			$('#student-row-header').clone(true,true).removeAttr('id').addClass('spacer-row').appendTo('#main-table')
 			$.each(cla, function( index, value ) {
 				let d=$('#student-row-header').clone(true,true).removeAttr('id').addClass('student-row').addClass('not-present')
 				let lcn=value.trim().toLowerCase()
+				let displayName=lcn.replace(/\\([^\\)]*\\)/g,'').replace(/\\[[^\\]]*\\]/g,'').trim()
 				let wr=$('[data-student-name="'+lcn+'"]')
 				if(!wr.length){
-					d.attr('data-student-name', lcn).find('.student-name').text(lcn)
+					d.attr('data-student-name', lcn).find('.student-name').text(displayName)
+					d.attr('data-student-name', lcn).find('.student-fullname').text(lcn)
 					d.appendTo('#main-table')
 				}
 				else{
@@ -258,6 +263,10 @@ let htmlTemplate=`
 					else{
 						let pm=cla.filter(element => element.toLowerCase().includes(lcn))
 						if(pm.length==1){
+							if(pm[0].indexOf('(')){
+								console.log(lcn+' is aliased to '+pm[0])
+								return
+							}
 							wr=$('[data-student-name="'+pm[0].trim().toLowerCase()+'"]')
 							wr.addClass('wonky')
 							addWonkyData("the entry <i>'"+name+"'</i> in the <b>'_arrivalTimes'</b> variable does not appear in the <b>'classList'</b> variable... however, it has a partial (and unique) match to <i>'"+pm[0].trim()+"'</i> in the <b>'classList'</b><br/>&rarr; so, the results for <i>'"+name+"'</i> have been merged into the row for <i>'"+pm[0].trim()+"'</i>")
@@ -266,6 +275,7 @@ let htmlTemplate=`
 							addWonkyData("the entry <i>'"+name+"'</i> in the <b>'_arrivalTimes'</b> variable does not uniquely match any of the names in the <b>'classList'</b> variable?!?<br/>&rarr; a row has been appended to the bottom of the table")
 							wr=$('.student-row:last').clone(true).detach()
 							wr.addClass('wonky').attr('data-student-name', lcn).find('.student-name').text(lcn)
+							wr.addClass('wonky').attr('data-student-name', lcn).find('.student-fullname').text(lcn)
 							wr.find('.cc').removeClass('present pattern-0 pattern-1 pattern-2')
 							$('.student-row:last').after(wr)
 						}
@@ -418,7 +428,8 @@ $('document').ready(function(){
 				}
 				let atv=!fat.match(/name.*:/ig)?1:2
 				let atd=JSON.parse(JSON.parse(fat))
-				let cla=classList.split(',')
+				let sep=(classList.indexOf(';')>-1)?';':','
+				let cla=classList.split(sep)
 				$.each(atd, function( id, data ) {
 					let name=(atv==1?id:data.name).toLowerCase().trim()
 					let wr=$('[data-student-name="'+name+'"]')
@@ -440,6 +451,7 @@ $('document').ready(function(){
 								addWonkyData("the entry <i>'"+name+"'</i> in the class on  <b>'"+dd+"'</b> does not uniquely match any of the names in the <b>'classList'</b> variable?!?<br/>&rarr; a row has been appended to the bottom of the table")
 								wr=$('.student-row:last').clone(true).detach()
 								wr.addClass('wonky').attr('data-student-name', name).find('.student-name').text(name)
+								wr.addClass('wonky').attr('data-student-name', name).find('.student-fullname').text(name)
 								wr.attr('data-student-name', name).find('.student-name').text(name)
 								wr.find('.cc').removeClass('present pattern-0 pattern-1 pattern-2')
 								wr.find('.gma-pca').remove()
@@ -476,14 +488,17 @@ $('document').ready(function(){
 				ll.html(cb[0].outerHTML+cn)
 				$('.for-student:first').after(ll)
 			}
-			function checkClassList(cl, cn) {	
-				$.each(cl.split(','), function(k, v ) {
+			function checkClassList(cl, cn) {
+				let sep=(cl.indexOf(';')>-1)?';':','
+				$.each(cl.split(sep), function(k, v ) {
 					let name=v.toLowerCase().trim()
+					let displayName=name.replace(/\\([^\\)]*\\)/g,'').replace(/\\[[^\\]]*\\]/g,'').trim()
 					let wr=$('[data-student-name="'+name+'"]')
 					if(!wr.length){
 						wr=$('.student-row:last').clone(true).detach()
 						wr.removeClass('wonky').attr('data-classes', cn)
-						wr.attr('data-student-name', name).find('.student-name').text(name)
+						wr.attr('data-student-name', name).find('.student-name').text(displayName)
+						wr.attr('data-student-name', name).find('.student-fullname').text(name)
 						wr.find('.cc').removeClass('present pattern-0 pattern-1 pattern-2')
 						wr.find('.gma-pca').remove()
 						wr.find('.as').addClass('absent')
@@ -526,7 +541,8 @@ $('document').ready(function(){
 				
 				$('body').addClass('showing-summary').removeClass('showing-daily')
 				
-				let cla=classList.split(',')
+				let sep=(classList.indexOf(';')>-1)?';':','
+				let cla=classList.split(sep)
 				$.each([...files].sort(byLastModified), function(a,f){
 					let fname=f.name
 					let reader = new FileReader();
@@ -633,7 +649,8 @@ $('document').ready(function(){
 		.showing-summary .summary { display: inherit; }
 		div#main-table { border-top: 2px solid; border-bottom: 2px solid; box-shadow: #555 2px 2px 2px; width: fit-content; min-width: 50%; }
 		#main-table.show-sub-columns .sub-column{ display: inline-block; }
-		#main-table.show-sub-columns .student-name{ width: 228px; }
+		#main-table.show-sub-columns .student-name{ display:none }
+		#main-table.show-sub-columns #student-row-header .student-name, #main-table.show-sub-columns .student-fullname{ display: inline-block; width: 228px; }
 		#main-table #student-row-header .student-name:after { content: '☆'; padding-left: 6px; }
 		#main-table.show-sub-columns  #student-row-header .student-name:after { content: '★'; padding-left: 6px; }
 		.cc { border-left: 1px solid #ccc; flex: 1; min-width: 14px; position: relative;}
@@ -646,11 +663,13 @@ $('document').ready(function(){
 		.student-row:hover { background-color: #3b770355; border: 2px solid #738ca0; border-left: 0; border-right: 0; }
 		.student-row.not-present:hover { background-color: #ef9494; }
 		.spacer-row { height: 6px; }
-		.student-name, .spacer-student-name { border-left: 2px solid #333; cursor:pointer; display: inline-block; min-width: 100px; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; min-width: 196px; width: 196px; }
-		.hide-names .student-row .student-name{ color: transparent; }
-		.student-row .student-name::before { content: "✔ "; color: #3b7703; }
+		.student-name, .student-fullname, .spacer-student-name { border-left: 2px solid #333; cursor:pointer; display: inline-block; min-width: 100px; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; min-width: 196px; width: 196px; }
+		.student-fullname{ display: none; }
+		#student-row-header .student-fullname{ display: none!important; }
+		.hide-names .student-row .student-name, .hide-names .student-row .student-fullname{ color: transparent; }
+		.student-row .student-name::before, .show-sub-columns .student-row .student-fullname::before { content: "✔ "; color: #3b7703; }
 		.student-row:last-child { border-bottom: 2px solid #333; }
-		.not-present .student-name::before, .showing-summary .student-row .student-name::before  { content: " "; padding-right: 15px; }
+		.not-present .student-name::before,.show-sub-columns .not-present .student-fullname::before, .showing-summary .student-row .student-name::before  { content: " "; padding-right: 15px; }
 		.showing-summary .cc, .as { display: none; }
 		.cc, .showing-summary .as { flex: 1; display:inline-block;}
 		.as{ border-left: 1px solid; min-width: 88px; }
@@ -706,8 +725,8 @@ $('document').ready(function(){
 		#wonky-data { background-color: #fff98a; border: 1px solid #444; border-radius: 12px; padding: 12px; }
 		#wonky-data:empty { display: none; }
 		#wonky-data li { margin-left: 20px; }
-		.wonky .student-name { background: #fff98a; }
-		.wonky .student-name::after, #wonky-data .wonky::after { color: red; content: " **"; }
+		.wonky .student-name, .wonky .student-fullname { background: #fff98a; }
+		.wonky .student-name::after, .wonky .student-fullname::after, #wonky-data .wonky::after { color: red; content: " **"; }
 		.gma-pca { background: #3b7703; border-radius: 6px; display: inline-block; height: 12px; margin: 3px 0; position:absolute; }
 		.gma-pca:hover { border: 2px solid #1f4001; height: 8px; margin: 3px 0px; }
 		#attendance-summary{ display: none; }
@@ -722,6 +741,11 @@ $('document').ready(function(){
 		.class-checkbox { cursor: pointer; margin: 0 0 0 20px;}
 		.class-checkbox input{ cursor: pointer; }
 		.disabled, .disabled input{ color: #999; cursor: not-allowed; }
+		#class-notes:empty { display: none; }
+		#class-notes { white-space: pre; }
+		#class-notes:before { content: "Class Notes:"; display: block; font-weight: bold; }
+		.student-row:not([data-classes]) { display: none; }
+
 	</style>
 	</head>
 	<body>
@@ -747,6 +771,7 @@ $('document').ready(function(){
 			
 			<a id="questions" title="Send questions or feedback" target="_blank" href="mailto:al@caughey.ca?subject=Questions/Feedback about Attendance report&amp;body=Before sending this message, please check to see whether your issue has been noted on:%0D%0A- the Facebook page [https://www.facebook.com/GoogleMeetAttendance], or %0D%0A- in the videos at my YouTube channel [https://www.youtube.com/c/AllanCaughey/]  %0D%0A%0D%0AOtherwise, please provide as much information in this email as possible - for example: a description of the problem, screenshots that highlight the issue.  It would be *really* helpful if you also attached the HTML file in question.%0D%0A%0D%0AThanks for your assistance%0D%0A%0D%0AAl">&#9993;</a>
 		</p>
+		<p id='class-notes'>[%%classNotes%%]</p>
 		<div id="main-table"></div><ul id="wonky-data"></ul>
 		 <fieldset class="legend summary">
 			<legend>Attendance Summary Legend:</legend>
@@ -780,7 +805,7 @@ $('document').ready(function(){
 		</fieldset>
 	</div>
 	<footer>
-		<p>Generated by the <a href="https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd/publish-accepted?authuser=0&amp;hl=en" target="_blank">Google Meet Attendance extension</a></p>
+		<p>Generated by the <a href="https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd/publish-accepted?authuser=0&amp;hl=en" target="_blank">Google Meet Attendance extension (v`+chrome.runtime.getManifest().version+`)</a></p>
 	</footer>
 
 <div id="gmatt-tooltip">
