@@ -5,11 +5,21 @@
 */
 let updateSummary=[
 	{
-		version: '0.9.0', 
+		version: '1.0.0', 
+		title: 'Changes in v', 
+		updateType: 0,
+		intro: "On *significant* under-the-covers change:", 
+		body: `<li>previously, I monitored the structure of the HTML page and if it changed, checked to see whether there were any new participants. Google, however, makes *lots* of changes to the page and this added considerably to the amount of work that the extension has to do (aka load on your CPU).  With the expanded Tiled layout (and/or Grid View), this should no longer be necessary... (I hope!) 
+		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a>.</p>`,
+		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
+	},
+	{
+		version: '0.9.0/0.9.1', 
 		title: 'Changes in v', 
 		updateType: 1,
 		intro: "Added class notes and 'alternate' names", 
-		body: `<li>There is a new field in the attendance dialog so that you can add little notes to remind you of significant moments after the fact.  This field will be displayed during and after the Meet. The notes will appear above the table in the HTML reports.
+		body: `<li>v0.9.1 - fixed a couple of CSS errors that hid the names in the reports... oops!
+		<li>There is a new field in the attendance dialog so that you can add little notes to remind you of significant moments after the fact.  This field will be displayed during and after the Meet. The notes will appear above the table in the HTML reports.
 		<li>You can now 'alias' the student sign-in names to something else... just start the row in the attendance field with the preferred display name and the add the sign-in name in brackets<br/>Al C (Allan Caughey)... the HTML report will show just the 'display' names
 		<li>Related to the one above, text wrapped in square brackets is ignored (at least one school system appends [student] to the students' names and this causes incorrect results when the names are sort)
 		<li>fixed the issue that showed the students as absent while the teacher was presenting
@@ -215,11 +225,12 @@ let installSummary=[
 		version:'', 
 		title:'Getting Started...', 
 		intro:"Contragulations!  If you are seeing this dialog, it means that you've completed the first step to tracking attendance during your Google Meet classes.", 
-		body:`<li>If you have fewer 16 students in your classes, you're good to good to go.., just make sure that you select the 'Tiled' layout when you start your Google Meet.  The number of Tiled students is expected to increase to 49 in the coming weeks, but in the interim...
-		<li class='warning'>If you have more than 16 students in your classes, you <b>*<u>must</u>*</b> also install the <a href='' target='_blank'>Grid View (fix)</a> extension and must make sure that the <i>'Show only participants with video'</i> option in the Grid View menu is <b>deselected</b>.
+		body:`<li>If you have fewer 49 students in your classes (and have the expanded built-in Tiled layout), you should be good to good to go.., just make sure that you select the 'Tiled' layout when you start your Google Meet.
+		<li class='warning'>If you have more than 49 students in your classes, you <b>*<u>must</u>*</b> also install the <a href='' target='_blank'>Grid View (fix)</a> extension and must make sure that the <i>'Only show participants with video'</i> option in the Grid View menu is <b>deselected</b>.
 		<li>Click the next <img id='nav-btn'> and previous <span class='nav-btn'><</span> buttons to see additional help topics in this dialog
 		<li>For a more detailed description, checkout the videos at my <a href='https://www.youtube.com/c/AllanCaughey/' target='_blank'>YouTube channel</a>** or visit the <a href='https://www.facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.
-		<li>I post updates to the Facebook page on a regular basis.`, 
+		<li>I post updates to the Facebook page on a regular basis.
+		<li>If you'd like, you can show your support via <a href='https://paypal.me/AlCaughey/'>PayPal</a>.`, 
 		footer:''
 	},
 	{
@@ -227,7 +238,7 @@ let installSummary=[
 		title:'Setting-up your Classes', 
 		intro:'Taking attendance is about recording who is there as well as who is not.  To make that possible, you have to start with the names of the people who you expect to attend your Meets..', 
 		body:`<li>Using the 'Class List' dropdown, you can 'Add' your classes and then read the names from a text file by clicking the folder icon (or you can type or paste them into the field).</p>
-			<p><b>NB</b> - You should only have to set up your classes once (presuming that Google sync and localStorage are working as intended).  Wtih Google sync, your class lists will be available on any laptop/PC/Chromebook when you log-in with the same credentials.</p>
+			<p><b>NB</b> - You should only have to set up your classes once (presuming that Google sync and localStorage are working as intended).  With Google sync, your class lists will be available on any laptop/PC/Chromebook when you log-in with the same credentials.</p>
 			<li>To delete a named class, click the trash can icon.  Currently there is no way to change a class name once you've entered it... instead, copy the names, click 'Add' from the drop down and then paste them into the field.  Then change back to the misnamed class, and click the trash can to delete it.
 			<li>Choose 'Reset' under the drop downto delete all of the named classes
 `, 
@@ -239,8 +250,8 @@ let installSummary=[
 		intro:"After entering your class lists, you're ready to start a Meet. ",
 		body:`<li>Select the appropriate class from the drop down list
 			<li>Click 'Join Now'
-			<li>Confirm the that Meet start time is correct
-			<li>Ensure that Grid View is enabled or that you are in the Tiled layout
+			<li>Confirm that the Meet start time is correct
+			<li>Ensure that Grid View (fix) is enabled or that you are in the Tiled layout
 			<li>Close the Meeting start dialog (or let it close on it's own)
 			<li>Run your Meet
 			<li>You can show/hide the attendance fields by clicking the checkmark (✔) in the toolbar at the bottom of the screen (beside the video icon).  You can also drag the field anywhere that you want on the screen. 
@@ -265,7 +276,7 @@ let installSummary=[
 		title:"Monitoring Who's There", 
 		intro:"Once again, you really do not have to do anything!",
 		body:`<li>Simply make sure that the 'Monitor Attendance' checkbox is selected on the (NEW) 'Settings' tab
-			<p class='warning'>For this feature to work properly, all students must visible on your Meet screen for entire the duration of your Meet.  If you need to present something from your computer, share it from a separate browser window.</p>
+			<p class='warning'>For this feature to work properly, all students must be visible on your Meet screen for entire the duration of your Meet.  If you need to present something from your computer, share it from a separate browser window.</p>
 			
 `, 
 		footer:""
@@ -276,14 +287,14 @@ let installSummary=[
 		intro:"When your Meet is over, click the red phone icon to end the session",
 		body:`<li>Click the disk icon to save the results in CSV format
 			<li>Click the html page to save the files in HTML format
-			<li>The files will be save to your Downloads folder (according to your browser preferences)
+			<li>The files will be saved to your Downloads folder (according to your browser preferences)
 `, 
 		footer:'Please send me both files if you notice any discrepancies in the reports.'
 	},
 	{
 		version:'', 
 		title:"Working in different languages", 
-		intro:"The extension already works in a number of languages - inlcuding English, French, German, Dutch, Spanish, Portuguese and Chinese.",
+		intro:"The extension already works in a number of languages - including English, French, German, Dutch, Spanish, Portuguese and Chinese.",
 		body:`<li>It is setup to support additional languages... all that is needed are the translations of a few key phrases.
 		<li>The hardest part of adding new languages (other than the fact that I do not know them) is testing that my code correctly eliminates the various system messages generated in a Google Meet.
 		<li>It often will take a couple of iterations to catch all of the subtle variations but it can be done and usually quite quickly!
@@ -318,8 +329,8 @@ let installSummary=[
 	{
 		version:'', 
 		title:"Last thoughts...", 
-		intro:"Thank you so much for installing my extension! I'm overwhelmed by the fact that it's approaching 100,000 weekly users!!!",
-		body:`<p>I am exceptionally fortunate to live in an area where we've not been badly affected by Covid-19.  I've had a conversations with teachers from around the globe who are working under very difficult circumstances. I hope/trust that you are doing what you can to keep yourself, your family and your students stay safe and sane.</p>
+		intro:"Thank you so much for installing my extension! I'm overwhelmed by the fact that it's has more than 650,000 weekly users!!!",
+		body:`<p>I am exceptionally fortunate to live in an area where we've not been badly affected by Covid-19.  I've had conversations with teachers from around the globe who are working under very difficult circumstances. I hope/trust that you are doing what you can to keep yourself, your family and your students safe and sane.</p>
 		<p>I'm keen to hear your feedback... please share your constructive criticism and opinions at my <a href='https://www.facebook.com/GoogleMeetAttendance/' target="_blank">Facebook page</a>.  Or in a pinch, at <a id='questions' target='_blank' href='mailto:al@caughey.ca?subject=Questions/Feedback about the Attendance extension&body=Please provide as much information in this email as possible - for example: a description of the problem, screenshots that highlight the issue.  It would be *really* helpful if you also attached the HTML file in question.%0D%0A%0D%0AThanks for your assistance%0D%0A%0D%0AAl'>my personal address </a>.</p>
 `, 
 		footer: ``
@@ -347,6 +358,7 @@ let meetStart=[
 ]
 
 function hideUpdateText(){
+	cancelEditStudent()
 	document.getElementById('gma-class-list-div').style.display='block'
 	document.getElementById('gma-messages-div').style.display='none'
 	let showing=document.getElementById('gma-messages-div').getAttribute("showing"); 
@@ -449,7 +461,7 @@ function showInstall( e ){
 
 	clearOtherTimers()
 
-	chrome.storage.sync.get(['__GMA_status', 'auto-hide-updates'], function(r){
+	chrome.storage.sync.get( ['__GMA_status', 'auto-hide-updates' ], function(r){
 		document.getElementById('gma-messages-div').setAttribute("showing", "install")
 
 		document.getElementById('prev-page').style.visibility='hidden'
@@ -468,14 +480,14 @@ function showUpdate(e){
 	
 	clearOtherTimers()
 	
-	chrome.storage.sync.get(['__GMA_status', 'auto-hide-updates'], function(r){
+	chrome.storage.sync.get( ['__GMA_status', 'auto-hide-updates' ], function(r){
 		document.getElementById('gma-messages-div').setAttribute("showing", "updates")
 		document.getElementById('prev-page').style.visibility='hidden'
 		document.getElementById('next-page').style.visibility='visible'
 		document.getElementById('messages-title').innerText='Update: v'+chrome.runtime.getManifest().version
 		let duration=null
 		if(typeof(e)!='object'){
-			duration=r['auto-hide-updates']||10
+			duration=r['auto-hide-updates' ]||10
 		}
 		showHelpPage( 0, duration )
 	})
@@ -484,44 +496,51 @@ function showUpdate(e){
 function showSettings(){
 	// create settings options
 	function addSettingsOption(n){
-		let nm=settingsArray[n].name, ty=settingsArray[n].type, ti=settingsArray[n].title, te=settingsArray[n].text, dv=settingsArray[n].default_value
-		if(ty==='button'){
-			addElement(document.getElementById('help-page-body'),'span',nm+'-label',ti,'settings-label',te)
-			addElement(document.getElementById(nm+'-label'),'button',nm,'')
-			document.getElementById(nm).innerText=te.split(' ')[0]
-			if( nm==='backup-class-lists' ){
-				document.getElementById(nm).addEventListener('click', backupClassLists, false)
+		let nm = settingsArray[n].name, ty = settingsArray[n].type, ti = settingsArray[n].title, te = settingsArray[n].text, dv = settingsArray[n].default_value
+		let hpb = document.getElementById( 'help-page-body' )
+		if( ty === 'button' ){
+			let tmp = addElement( hpb, 'span', nm + '-label', ti, 'settings-label', '' )
+			addElement( tmp, 'span', '', ti, 'input-label', te )
+			let nb = addElement( tmp, 'button', nm, '' )
+			nb.innerText = te.split(' ')[0]
+			if( nm === 'backup-class-lists' ){
+				nb.addEventListener( 'click', backupClassLists, false )
 			}
 		}
 		else{
 			
-			if(ty==='radio'){
+			if( ty ==='radio' ){
 				te=te.split('|')
-				addElement(document.getElementById('help-page-body'),'span',nm+'-label',ti,'settings-label',te[0])
-				for( let n=1;n<te.length; n++ ){
-					let rbn=nm+'-'+te[n]
-					addElement(document.getElementById(nm+'-label'),'label',rbn,'')
-					addElement(document.getElementById(rbn),'input','radio-'+rbn,'','',te[n])
-					addElement(document.getElementById(rbn),'span','','','',te[n])
-					document.getElementById('radio-'+rbn).type = ty
-					document.getElementById('radio-'+rbn).name = nm
-					document.getElementById('radio-'+rbn).value = te[n]
-					document.getElementById('radio-'+rbn).addEventListener('change', saveSettings, false)
+				let tmp = addElement( hpb, 'span', nm+'-label', ti, 'settings-label', '' )
+				addElement( tmp, 'span', '', ti, 'input-label', te[0] )
+				for( let n = 1; n < te.length; n++ ){
+					let rbn = nm + '-' + te[n]
+					let rbne = addElement( document.getElementById( nm + '-label' ), 'label' , rbn,'' )
+					let nb = addElement( rbne,'input','radio-'+rbn,'','',te[n] )
+					addElement( document.getElementById(rbn), 'span' ,'' , '', '', te[n] )
+					nb.type = ty
+					nb.name = nm
+					nb.value = te[n]
+					nb.addEventListener('change', saveSettings, false)
+					if ( te[n] == dv ) {
+						rbne.classList.add( 'default' )
+					}
 				}
 			}
 			else{
-				addElement(document.getElementById('help-page-body'),'label',nm+'-label',ti,'settings-label',te)
-				addElement(document.getElementById(nm+'-label'),'input',nm,'')
-				document.getElementById(nm).type = ty
-				document.getElementById(nm).addEventListener('change', saveSettings, false)
-				document.getElementById(nm).onmousedown = stopProp;
-				document.getElementById( nm ).setAttribute('placeholder', dv )
+				let tmp = addElement( hpb, 'label', nm+'-label', ti,'settings-label', '' )
+				addElement( tmp, 'span', '', ti, 'input-label', te )
+				let ni = addElement( tmp, 'input', nm, '' )
+				ni.type = ty
+				ni.addEventListener( 'change', saveSettings, false )
+				ni.onmousedown = stopProp;
+				ni.setAttribute('placeholder', dv )
 			}
 			let son=[]
 			son.push(nm)
 			chrome.storage.sync.get(son, function(r){
 				//let tv=r[nm]==='undefined'||(!settingsArray[n].default_value?'':settingsArray[n].default_value)
-				let tv=typeof(r[nm])==='undefined'?(!dv?'':dv):r[nm]
+				let tv=typeof(r[nm] )==='undefined'?(!dv?'':dv):r[nm]
 				if ( ty==='checkbox'){
 					document.getElementById(nm).checked=tv
 				}
@@ -566,22 +585,22 @@ function showMeetingStarted(){
 
 	showHelpPage(0, 20)
 
-	let gmgv=document.getElementsByClassName('__gmgv-button'), gmgvNotCorrect=''
-	let nstu=document.getElementById('invited-list').value.split('\n').length
+	let gmgv=document.querySelectorAll('.__gmgv-button'), gmgvNotCorrect=''
+	let nstu=document.querySelectorAll( '.student-button' ).length
 	let now = new Date(), timeNow = now.getHours()+':'+twod(now.getMinutes())
 	
-	let hpb=document.getElementById('help-page-body')
+	let hpb=document.getElementById( 'help-page-body' )
 	addElement(hpb,'li','','','',"Your Meet start-time is set to <span id='current-start-time'></span> and it is now <span id='current-time'></span>.<br/>If your  start-time is not correct, click <span id='resetStartTime'></span>.")
 
 	addElement(hpb,'li','','','',"<b>Remember</b>: to correctly take and monitor attendance, all students <b><u>must</u></b> be visible in your Meet window for the entire duration of your class")			
-	if(nstu<16){
-		write2log( 'Class smaller than 16... use Tiled layout ' )
-		addElement(hpb,'p','','','',"Your class is small enough to use the built-in Tiled layout.<br/>Please confirm that you are using this layout by clicking the vertical ellipsis \'&vellip;\' in the bottom right corner of the screen and choosing `Change layout` (or make sure the Grid View extension is installed & enabled).")
+	if(nstu<49){
+		write2log( 'Class smaller than 49... use Tiled layout ' + nstu )
+		addElement(hpb,'p','','','',"Your class is small enough to use the built-in Tiled layout.<br/>Please confirm that you are using this layout by clicking the vertical ellipsis \'&vellip;\' in the bottom right corner of the screen and choosing `Change layout` (or make sure the Grid View (fix) extension is installed & enabled).")
 	}
 	else{
-		addElement(hpb,'p','','','',"Your class is larger than 16 students so you <b><u>must</u></b> use the Grid View extension.")
+		addElement(hpb,'p','','','',"Your class is larger than 16 students so you <b><u>must</u></b> use the Grid View (fix) extension.")
 		if(gmgv.length===0){
-			write2log( 'Class larger than 16... Grid View is not installed' )
+			write2log( 'Class larger than 49... Grid View is not installed' )
 			addElement(hpb,'p','','','warning',"It appears that you have not installed (or perhaps have disabled) the Grid View extension.")		
 			addElement(hpb,'p','','','',"The Grid View extension can be downloaded <a href='https://chrome.google.com/webstore/detail/google-meet-grid-view/kklailfgofogmmdlhgmjgenehkjoioip?authuser=0&hl=en' target='_blank'>here</a></p>")	
 		}

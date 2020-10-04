@@ -1,52 +1,59 @@
-
-// save the attendance info to an html file
+// save the attendance info to an html file... only if option is set
 function saveHTMLFile(){
-	let now = new Date(), d = now.getDate(), m = now.getMonth()+1, y = now.getFullYear()
-	let ctime = now.getHours()+':'+twod(now.getMinutes())
-	let cdate = y+'-'+twod(m)+'-'+twod(d)
-	let cdd = document.getElementById("select-class"), className = cdd.options[cdd.selectedIndex].text;
-	let cmet=sessionStorage.getItem( 'Meeting-end-time')||ctime, cmeta=cmet.split(':')
-	if (cmeta[0]*60+cmeta[1]*1 < now.getHours()*60+now.getMinutes()*1) cmet=ctime
-	sessionStorage.setItem( 'Meeting-end-time', cmet )
+	chrome.storage.sync.get( null, function(r) {
+	let ssf = r[ 'generate-files' ] == 'both' || r[ 'generate-files' ] == 'html'
+		if( !ssf ){
+			console.log ('Exiting without saving the HTML report' )
+		}
 
-	chrome.storage.sync.get(['saved-attendance', 'generate-log', 'monitor-attendance'], function (r) {
-		let sal=r['saved-attendance']||{}
-		let monitorChecked=r['monitor-attendance']
+		let now = new Date(), d = now.getDate(), m = now.getMonth() + 1, y = now.getFullYear()
+		let ctime = now.getHours() + ':' + twod( now.getMinutes() )
+		let cdate = y + '-' + twod(m) + '-' + twod(d)
+		let cmet=sessionStorage.getItem( 'Meeting-end-time' )||ctime, cmeta=cmet.split( ':' )
+		if ( cmeta[0] * 60 + cmeta[1] * 1 < now.getHours() * 60 + now.getMinutes() * 1 ) cmet = ctime
+		sessionStorage.setItem( 'Meeting-end-time', cmet )
+		getStudentNames()
 
-		let filename=className+' ('+cdate+').html'
-		if( !sal[className] ) sal[className]=[]
-		if( !sal[className].includes(cdate) ) sal[className].push(cdate)
+		let currentClassCode = sessionStorage.getItem( '_Class4ThisMeet' )||r[ 'Current-Class-Code' ]||'Class-List'
+		let className = r[ '__GMA_ClassLists' ][ currentClassCode ].n
+		//let studentNames = Object.keys( r[ '__GMA_ClassLists' ][ currentClassCode ].s ) .join(';')
+		let studentNames = document.getElementById( 'invited-list' ).value.replace( /\n/gm, ';' )
+
+		let filename = className+' ('+cdate+').html'
+
+		let sal = r[ 'saved-attendance' ]||{}
+		if( !sal[ className ] ) sal[ className ]=[]
+		if( !sal[ className ].includes( cdate ) ) sal[ className ].push( cdate )
 
 		let html=htmlTemplate;
 		let cn=sessionStorage.getItem( 'class-notes' )||''
 		html=html.replace( '[%%classDate%%]', cdate )
 		html=html.replace( '[%%startTime%%]', sessionStorage.getItem( 'Meeting-start-time' ) )
 		html=html.replace( '[%%endTime%%]', sessionStorage.getItem( 'Meeting-end-time' ) )
-		html=html.replace( '[%%monitorChecked%%]', monitorChecked )
 		html=html.replace( '[%%className%%]', className )
 		html=html.replace( '[%%_activeMeetID%%]', sessionStorage.getItem( '_activeMeetIDs' ) )
 
-		let classList = document.getElementById( 'invited-list' ).value.replace( /\n/gm,';').replace(/[✔\?] /g,'' )
 		html=html.replace( '[%%dateList%%]', JSON.stringify( sal[className ] ) )
-		html=html.replace( '[%%classList%%]', JSON.stringify( classList ) )
+		html=html.replace( '[%%classList%%]', JSON.stringify( studentNames ) )
 		html=html.replace( '[%%arrivalTimes%%]', JSON.stringify( sessionStorage.getItem( '_arrivalTimes' ) ) )
-		html=html.replace( '[%%gmaLog%%]', !r['generate-log']?'':sessionStorage.getItem( 'GMA-Log' ) )
+		html=html.replace( '[%%gmaLog%%]', !r['generate-log' ]?'':sessionStorage.getItem( 'GMA-Log' ) )
 		html=html.replace( '[%%classNotes%%]', cn.replace( /\\n/gm, '<br/>' ).trim() )
 
-		let blob = new Blob( [html] , {type: 'text/html;charset=utf-8'})
-		let temp_a = document.createElement("a")
+		let blob = new Blob( [ html ] , { type: 'text/html;charset=utf-8' } )
+		let temp_a = document.createElement( 'a' )
 		temp_a.download = filename
-		temp_a.href = window.webkitURL.createObjectURL(blob)
+		temp_a.href = window.webkitURL.createObjectURL( blob )
 		temp_a.click()
 
 		document.getElementById('save-html-file').style.visibility = 'hidden'
 
 		sal[className][cdate]=filename
-		chrome.storage.sync.set({'saved-attendance': sal}, null )
+		chrome.storage.sync.set( {'saved-attendance': sal}, null )
 		write2log('HTML file saved - ' + filename )
 })
 }
 
+//To Do... account for email addresses in classList variable
 let htmlTemplate=`
 <html>
 	<head>
@@ -94,7 +101,7 @@ let htmlTemplate=`
 			$('#sum-sta').text(tgt.data('start'))
 			$('#sum-end').text(tgt.data('end'))
 			$('#sum-dur').text(tgt.data('duration'))
-			
+
 		}
 		function hideSummaryTip(e){
 			$('#summary-tooltip').hide().detach().appendTo($('body'))
@@ -113,7 +120,7 @@ let htmlTemplate=`
 			$('#stu-arr').text(tgt.data('arrived'))
 			$('#stu-lft').text(tgt.data('left'))
 			$('#stu-sty').text(tgt.data('stayed'))
-			
+
 		}
 		function hideStudentTip(e){
 			$('#student-tooltip').hide().detach().appendTo($('body'))
@@ -146,12 +153,13 @@ let htmlTemplate=`
 				_activeMeetID=''
 			}
 			$('#meet-meet-id').text(_activeMeetID)
-			$('#logging-info')[$('#gma-log').val()==''?'removeClass':'addClass']( 'showing' )
+			$('#logging-info')[$('#gma-log').val()==''?'removeClass':'addClass' ]( 'showing' )
 
 			let d=$('<div/>')
 			d.attr('id','student-row-header').attr('data-student-name', 'Names')
 			$('<span/>').addClass('student-name').attr('data-html', true).appendTo(d)
-			$('<span/>').addClass('student-fullname').attr('data-html', true).appendTo(d)												
+			$('<span/>').addClass('student-fullname').attr('data-html', true).appendTo(d)
+			$('<span/>').addClass('student-email').attr('data-html', true).appendTo(d)
 			$('<span/>').addClass('arrived-at sub-column').attr('title','Arrrived at').appendTo(d)
 			$('<span/>').addClass('stayed-for sub-column').attr('title','Length of stay in min').appendTo(d)
 			$('<span/>').addClass('last-seen sub-column').attr('title','Last seen at').appendTo(d)
@@ -166,7 +174,7 @@ let htmlTemplate=`
 					atVersion=2
 				}
 				$.each(JSON.parse(_arrivalTimes), function( id, checks ) {
-					if(!wwt[checks.name]){
+					if(!wwt[checks.name] ){
 						wwt[checks.name]=[]
 						wwt[checks.name].checks=[]
 					}
@@ -219,11 +227,17 @@ let htmlTemplate=`
 			$.each(cla, function( index, value ) {
 				let d=$('#student-row-header').clone(true,true).removeAttr('id').addClass('student-row').addClass('not-present')
 				let lcn=value.trim().toLowerCase()
-				let displayName=lcn.replace(/\\([^\\)]*\\)/g,'').replace(/\\[[^\\]]*\\]/g,'').trim()
-				let wr=$('[data-student-name="'+lcn+'"]')
+				let displayName = lcn.replace( /\\([^\\)]*\\)/g, '' ).replace(/\\[[^\\]]*\\]/g,'').replace( /<[^>]*>/g, '' ).trim()
+				matches = lcn.match( /<([^>]*?)>/ )
+				email = !!matches?matches[1].trim():''
+				matches = lcn.match( /\(([^\)]*?)\)/ )
+				loginName = !!matches?matches[1].trim():displayName
+
+				let wr=$('[data-student-name*="'+lcn+'"]')
 				if(!wr.length){
-					d.attr('data-student-name', lcn).find('.student-name').text(displayName)
-					d.attr('data-student-name', lcn).find('.student-fullname').text(lcn)
+					d.attr('data-student-name', lcn).attr('data-login-name', loginName).attr('data-student-email', email).find('.student-name').text(displayName)
+					d.find('.student-fullname').text(lcn)
+					d.find('.student-email').text(email)
 					d.appendTo('#main-table')
 				}
 				else{
@@ -252,22 +266,22 @@ let htmlTemplate=`
 				}
 
 				let name=atVersion==1?id:checks.name, lcn=name.toLowerCase()
-				let wr=$('[data-student-name="'+name.trim().toLowerCase()+'"]')
+				let wr=$('[data-student-name*="'+name.trim().toLowerCase()+'"]')
 				if(!wr.length){
 					let mmm=cla.filter(function(nn,b){
 						return nn && nn.toLowerCase().indexOf(lcn)===0
 					})
 					if(mmm.length==1){
-						wr=$('[data-student-name="'+mmm[0].trim().toLowerCase()+'"]')
+						wr=$('[data-student-name*="'+mmm[0].trim().toLowerCase()+'"]')
 					}
 					else{
 						let pm=cla.filter(element => element.toLowerCase().includes(lcn))
 						if(pm.length==1){
 							if(pm[0].indexOf('(')){
-								console.log(lcn+' is aliased to '+pm[0])
+								console.log(lcn+' is aliased to '+pm[0] )
 								return
 							}
-							wr=$('[data-student-name="'+pm[0].trim().toLowerCase()+'"]')
+							wr=$('[data-student-name*="'+pm[0].trim().toLowerCase()+'"]')
 							wr.addClass('wonky')
 							addWonkyData("the entry <i>'"+name+"'</i> in the <b>'_arrivalTimes'</b> variable does not appear in the <b>'classList'</b> variable... however, it has a partial (and unique) match to <i>'"+pm[0].trim()+"'</i> in the <b>'classList'</b><br/>&rarr; so, the results for <i>'"+name+"'</i> have been merged into the row for <i>'"+pm[0].trim()+"'</i>")
 						}
@@ -331,7 +345,7 @@ let htmlTemplate=`
 				asjq.appendTo(ash)
 				let asjs=$('<script/>').attr('type','text/javascript')
 				asjs.text($('script[data-for-summary="true"]').text()+\`
-				
+
 $('document').ready(function(){
 	$('.student-row .student-name').click(function(e){
 		filterByStudent(e)
@@ -378,7 +392,7 @@ $('document').ready(function(){
 				temp_a.href = window.webkitURL.createObjectURL(blob)
 				temp_a.click()
 			})
-			
+
 			$('#deselect-student').click(function(){
 				removeStudentFilter()
 			})
@@ -401,7 +415,7 @@ $('document').ready(function(){
 					reader.onload = function(e) {
 						let fc = e.target.result
 						let htmlTxt=(new DOMParser()).parseFromString(fc, "text/html")
-						let cli=!htmlTxt.all['gma-log']?'':htmlTxt.all['gma-log'].value
+						let cli=!htmlTxt.all['gma-log' ]?'':htmlTxt.all['gma-log' ].value
 						htmlTxt.body.innerHTML=curBody
 						htmlTxt.scripts[3].textContent=document.scripts[3].textContent
 						$(htmlTxt).find('style').text( curStyles )
@@ -418,13 +432,13 @@ $('document').ready(function(){
 			})
 			function tallyAttendance(dd, st, fat, md){
 				//console.log('tallyAttendance', fat )
-				
+
 				function ontime(s,a){
 					return (timeDiff(s,a))<5
 				}
 				function timeDiff(s,a){
 					let st=s.split(':'), ar=a.split(':')
-					return (Math.max(0,(60*ar[0]+1*ar[1]) - (60*st[0]+1*st[1])))
+					return (Math.max(0,(60*ar[0]+1*ar[1] ) - (60*st[0]+1*st[1] )))
 				}
 				let atv=!fat.match(/name.*:/ig)?1:2
 				let atd=JSON.parse(JSON.parse(fat))
@@ -432,18 +446,18 @@ $('document').ready(function(){
 				let cla=classList.split(sep)
 				$.each(atd, function( id, data ) {
 					let name=(atv==1?id:data.name).toLowerCase().trim()
-					let wr=$('[data-student-name="'+name+'"]')
+					let wr=$('[data-student-name*="'+name+'"]')
 					if(!wr.length){
 						let mmm=cla.filter(function(nn,b){
 							return nn && nn.toLowerCase().indexOf(name)===0
 						})
 						if(mmm.length==1){
-							wr=$('[data-student-name="'+mmm[0].trim().toLowerCase()+'"]')
+							wr=$('[data-student-name*="'+mmm[0].trim().toLowerCase()+'"]')
 						}
 						else{
 							let pm=cla.filter(element => element.toLowerCase().includes(name))
 							if(pm.length==1){
-								wr=$('[data-student-name="'+pm[0].trim().toLowerCase()+'"]')
+								wr=$('[data-student-name*="'+pm[0].trim().toLowerCase()+'"]')
 								wr.addClass('wonky')
 								addWonkyData("the entry <i>'"+name+"'</i> in the class on  <b>'"+dd+"'</b>  does not appear in the current <b>'classList'</b> variable... however, it has a partial (and unique) match to <i>'"+pm[0].trim()+"'</i> in the <b>'classList'</b><br/>&rarr; so, the results for <i>'"+name+"'</i> have been merged into the row for <i>'"+pm[0].trim()+"'</i>")
 							}
@@ -473,13 +487,13 @@ $('document').ready(function(){
 					s.appendTo(wc)
 				})
 			}
-			function byFileName(a,b) {			
+			function byFileName(a,b) {
 				return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
 			}
-			function byLastModified(a,b) {			
+			function byLastModified(a,b) {
 				return a.lastModified < b.lastModified ? -1 : a.lastModified > b.lastModified ? 1 : 0;
 			}
-			function addClassCheckbox(cn) {			
+			function addClassCheckbox(cn) {
 				let ll=$('<label/>').addClass('class-checkbox').attr('data-class-name',cn)
 				let cb=$('<input/>').attr('data-class-name',cn).attr('type','checkbox').attr('checked','checked')
 				ll.click(function(e){
@@ -492,8 +506,8 @@ $('document').ready(function(){
 				let sep=(cl.indexOf(';')>-1)?';':','
 				$.each(cl.split(sep), function(k, v ) {
 					let name=v.toLowerCase().trim()
-					let displayName=name.replace(/\\([^\\)]*\\)/g,'').replace(/\\[[^\\]]*\\]/g,'').trim()
-					let wr=$('[data-student-name="'+name+'"]')
+					let displayName=name.replace(/\\( [^\\)]*\\)/g,'').replace(/\\[[^\\]]*\\]/g,'').trim()
+					let wr=$('[data-student-name*="'+name+'"]')
 					if(!wr.length){
 						wr=$('.student-row:last').clone(true).detach()
 						wr.removeClass('wonky').attr('data-classes', cn)
@@ -538,12 +552,12 @@ $('document').ready(function(){
 			})
 			.change(function(e){
 				const files = [...e.currentTarget.files];
-				
+
 				$('body').addClass('showing-summary').removeClass('showing-daily')
-				
+
 				let sep=(classList.indexOf(';')>-1)?';':','
 				let cla=classList.split(sep)
-				$.each([...files].sort(byLastModified), function(a,f){
+				$.each( [...files].sort(byLastModified), function(a,f){
 					let fname=f.name
 					let reader = new FileReader();
 					reader.readAsText(f);
@@ -565,8 +579,8 @@ $('document').ready(function(){
 						let fst=vars.match(/startTime=.*/)[0].split('=')[1].replace(/"/g,'')
 						let fet=vars.match(/endTime=.*/)[0].split('=')[1].replace(/"/g,'')
 						let fs=fst.split(':'), fe=fet.split(':')
-						let mdur=(fst, fet, 60*fe[0]+1*fe[1]) - (60*fs[0]+1*fs[1])
-					
+						let mdur=(fst, fet, 60*fe[0]+1*fe[1] ) - (60*fs[0]+1*fs[1] )
+
 						if( $('[data-date="'+fcd+'"][data-start="'+fst+'"]').length==0 ){
 							let s=$('<span/>').addClass('as').attr('data-class-name', fcn).attr('data-date', fcd).attr('data-start', fst).css('flex-grow', mdur)
 							s.clone().addClass('absent').appendTo('.student-row')
@@ -587,14 +601,14 @@ $('document').ready(function(){
 				})
 			})
         });
-		
+
 	</script>
 	<script type='text/javascript' data-for-summary="true">
 		function showHideClasses(e){
 			let tgt=$(e.target), cn=tgt.data('class-name')
 			if(tgt.hasClass('disabled')) return false
 			let isChecked=$('input[data-class-name="'+cn+'"]').is(':checked')
-			$('.as[data-class-name="'+cn+'"]')[isChecked?'fadeIn':'fadeOut']('slow')
+			$('.as[data-class-name="'+cn+'"]')[isChecked?'fadeIn':'fadeOut' ]('slow')
 			if($('.selected').length==1) return
 			$('.student-row[data-classes*="'+cn+'"]').fadeOut('slow')
 			$('.class-checkbox input:checked').each(function(a,b){
@@ -641,7 +655,7 @@ $('document').ready(function(){
 				let ccn=$(this).data('class-name')
 				$('.student-row[data-classes*="'+ccn+'"]').fadeIn('slow')
 				$('.as[data-class-name="'+ccn+'"]').fadeIn('slow')
-			})				
+			})
 		}
 	</script>
 	<style>
@@ -651,6 +665,7 @@ $('document').ready(function(){
 		#main-table.show-sub-columns .sub-column{ display: inline-block; }
 		#main-table.show-sub-columns .student-name{ display:none }
 		#main-table.show-sub-columns #student-row-header .student-name, #main-table.show-sub-columns .student-fullname{ display: inline-block; width: 228px; }
+		#main-table.show-sub-columns .student-email{ display: inline-block; min-width: 78px; padding: 0 6px; width: 78px; }
 		#main-table #student-row-header .student-name:after { content: '☆'; padding-left: 6px; }
 		#main-table.show-sub-columns  #student-row-header .student-name:after { content: '★'; padding-left: 6px; }
 		.cc { border-left: 1px solid #ccc; flex: 1; min-width: 14px; position: relative;}
@@ -663,8 +678,8 @@ $('document').ready(function(){
 		.student-row:hover { background-color: #3b770355; border: 2px solid #738ca0; border-left: 0; border-right: 0; }
 		.student-row.not-present:hover { background-color: #ef9494; }
 		.spacer-row { height: 6px; }
-		.student-name, .student-fullname, .spacer-student-name { border-left: 2px solid #333; cursor:pointer; display: inline-block; min-width: 100px; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; min-width: 196px; width: 196px; }
-		.student-fullname{ display: none; }
+		.student-name, .student-fullname, .spacer-student-name, .student-email{ border-left: 2px solid #333; cursor:pointer; display: inline-block; min-width: 100px; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; min-width: 196px; width: 196px; }
+		.student-fullname, .student-email { display: none; }
 		#student-row-header .student-fullname{ display: none!important; }
 		.hide-names .student-row .student-name, .hide-names .student-row .student-fullname{ color: transparent; }
 		.student-row .student-name::before, .show-sub-columns .student-row .student-fullname::before { content: "✔ "; color: #3b7703; }
@@ -720,8 +735,8 @@ $('document').ready(function(){
 		#logging-info.showing { display: block; }
 		#gma-log { width: 100%; }
 		#gma-log:focus { height: 500px; }
-		.wonky-header{ display: none; font-weight: bold; margin: 0; } 
-		.wonky-header:first-of-type { display: revert; }		
+		.wonky-header{ display: none; font-weight: bold; margin: 0; }
+		.wonky-header:first-of-type { display: revert; }
 		#wonky-data { background-color: #fff98a; border: 1px solid #444; border-radius: 12px; padding: 12px; }
 		#wonky-data:empty { display: none; }
 		#wonky-data li { margin-left: 20px; }
@@ -744,13 +759,16 @@ $('document').ready(function(){
 		#class-notes:empty { display: none; }
 		#class-notes { white-space: pre; }
 		#class-notes:before { content: "Class Notes:"; display: block; font-weight: bold; }
-		.student-row:not([data-classes]) { display: none; }
+		.showing-summary .student-row:not( [data-classes] ) { display: none; }
 
+		@media print {
+		  #up-rev-files { display: none; }
+		}
 	</style>
 	</head>
 	<body>
 
-	<div id='attendance-report' data-monitor-checked='[%%monitorChecked%%]'>
+	<div id='attendance-report'>
 		<h1 class='daily'>Daily Attendance Report for <span class="className"></span>: <span class="classDate"></span><label for='attendance-summary' id="attendance-summary-label"><input type="file" id="attendance-summary" multiple="">Show Attendance Summary</label></h1>
 		<h1 class="summary">Attendance Summary Report for <span class="className"></span> <span class="for-student"></span><span id="deselect-student" class='btn' title='Show all students'>X</span><span id="download-summary" class='btn' title='Download the current summary'>🠟</span><button id="close-summary">Close the Summary</button></h1>
 		<ul class='summary'>
@@ -761,14 +779,14 @@ $('document').ready(function(){
 			<span class='daily'>
 				Class:<span class="className"></span>
 				Meet ID: <span id="meet-meet-id"></span>
-				Date: <select id="classDate"></select> 
-					Earliest Arrival(s): <span id="meet-earliestTime"></span>  
-					Start Time: <span id="meet-startTime"></span> 
-					End Time: <span id="meet-endTime"></span> 
+				Date: <select id="classDate"></select>
+					Earliest Arrival(s): <span id="meet-earliestTime"></span>
+					Start Time: <span id="meet-startTime"></span>
+					End Time: <span id="meet-endTime"></span>
 					Length of Meet: <span id="meet-length"></span>
-					
+
 			</span>
-			
+
 			<a id="questions" title="Send questions or feedback" target="_blank" href="mailto:al@caughey.ca?subject=Questions/Feedback about Attendance report&amp;body=Before sending this message, please check to see whether your issue has been noted on:%0D%0A- the Facebook page [https://www.facebook.com/GoogleMeetAttendance], or %0D%0A- in the videos at my YouTube channel [https://www.youtube.com/c/AllanCaughey/]  %0D%0A%0D%0AOtherwise, please provide as much information in this email as possible - for example: a description of the problem, screenshots that highlight the issue.  It would be *really* helpful if you also attached the HTML file in question.%0D%0A%0D%0AThanks for your assistance%0D%0A%0D%0AAl">&#9993;</a>
 		</p>
 		<p id='class-notes'>[%%classNotes%%]</p>

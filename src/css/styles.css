@@ -3,16 +3,16 @@
 	border-left: 1px solid #CCC;
 	border-right: 1px solid #CCC;
 	border-radius: 12px 12px 0 0;
-	left:18px;
-	position:absolute;
+	left: 18px;
+	position: absolute;
 	top: 88px;
-	z-index:99;
+	z-index: 99;
 }
 #gma-attendance-fields.in-meeting{
-	opacity:0.3;
+	opacity: 0.3;
 }
 #gma-attendance-fields button, #gma-attendance-fields input, #gma-attendance-fields optgroup, #gma-attendance-fields select, #gma-attendance-fields textarea {
-    font-family: unset;
+	font-family: unset;
 }
 .gma-header {
 	background: linear-gradient(#888, #aaa);
@@ -23,7 +23,7 @@
 	height: 28px;
 	margin: 0;
 	padding: 4px 0 0 8px;
-	position: relative;	
+	position: relative;
 	//width: 500px;
 	white-space: nowrap;
 }
@@ -32,22 +32,22 @@
 	text-decoration: none;
 }
 #select-class{
-	background:transparent;
+	background: transparent;
 	border: 0;
 	display: inline-block;
-    height: auto;
+	height: auto;
 	max-width: 100px;
-    padding: 0;
+	padding: 0;
 	width: auto;
 }
 #select-class option{
 	color: unset;
 }
 #select-class:hover{
-    cursor: pointer;
+	cursor: pointer;
 }
 #class-name {
-    width: 72px;
+	width: 72px;
 }
 #class-name.add-class::after{
 	content: "Enter new class name"
@@ -55,12 +55,22 @@
 #invited-list{
 	background-color: revert;
 	border: 0px;
+	display: none;
+	height: 0;
 	min-width: calc(100% - 6px);
 	overflow-y: scroll;
+	text-transform: capitalize;
 	width: calc(100% - 6px);
 }
-.in-meeting #invited-list{
-	min-height:unset;
+
+#invited-list.being-editted{
+	display: block;
+	min-height: 128px;
+	transition: height 1.5s ease-out;
+}
+.do-not-show{
+	display: none;
+	transition: height 1.5s ease-out;
 }
 #gma-attendance-fields.empty, #gma-attendance-fields:hover{
 	opacity: 1;
@@ -69,39 +79,32 @@
 	min-height: 100px;
 	transition: height 1.5s ease-out;
 }
-#gma-attendance-fields.meeting-over  {
+#gma-attendance-fields.meeting-over {
 	left: 100px;
-}
-.meeting-over #invited-list {
-	min-height: 500px;
-	transition: height 1.5s ease-out;
 }
 .empty #clear-attendance-field, .empty #clear-attendance-marks {
 	visibility: hidden;
 }
 #invited-list::placeholder {
-	color:red;
+	color: red;
 	font-size: 14px;
 }
 #invited-list:focus {
 	background-color: white;
-	height:400px;
+	height: 400px;
 	width: 228px;
 }
 #invited-list:focus::placeholder {
-  color: transparent;
-}
-#read-file {
-    display: none;
+ color: transparent;
 }
 #class-name {
-    background: revert;
+	background: revert;
 	display: none;
-    font-size: revert;
-    height: revert;
-    margin-right: 8px;
-    padding-left: 3px;
-    vertical-align: middle;
+	font-size: revert;
+	height: revert;
+	margin-right: 8px;
+	padding-left: 3px;
+	vertical-align: middle;
 }
 .gma-btn{
 	cursor: pointer;
@@ -124,23 +127,23 @@
 	box-shadow: 0 1px 3px 0 rgba(60,64,67,0.302), 0 4px 8px 3px rgba(60,64,67,0.149);
 }
 .gma-btn:active, .gma-video-link:active {
-    opacity: .333;
+	opacity: .333;
 }
 #show-gma-attendance-fields{
-    align-items: center;
+	align-items: center;
 	background-color: transparent;
-	border:1px solid #CCC;
-    border-radius: 50%;
-    color: #444;
+	border: 1px solid #CCC;
+	border-radius: 50%;
+	color: #444;
 	display: inline-flex;
-    font-size: 20px;
+	font-size: 20px;
 	font-weight: bold;
-    height: 54px;
+	height: 54px;
 	margin: 0 8px;
 	opacity: .75;
-    text-indent: 19px;
-    vertical-align: middle;
-    width: 54px;
+	text-indent: 19px;
+	vertical-align: middle;
+	width: 54px;
 }
 #show-gma-attendance-fields:hover{
 	background-color: darkseagreen;
@@ -149,59 +152,59 @@
 	cursor: pointer;
 }
 #show-gma-attendance-fields.showing{
-	color:green;
+	color: green;
 	background-color: silver;
 }
 #show-gma-attendance-fields label{
-	color:unset!important;
+	color: unset!important;
 }
 #gma-attendance-fields [type="checkbox"], #gma-attendance-fields [type="radio"] {
 	all: revert!important;
 }
-#gma-attendance-fields [type="radio"] + span::before, #gma-attendance-fields  [type="radio"] + span::after {
-    all: unset;
+#gma-attendance-fields [type="radio"] + span::before, #gma-attendance-fields [type="radio"] + span:: after {
+	all: unset;
 }
-#gma-attendance-fields [type="radio"] + span, #gma-attendance-fields [type="radio"]:checked + span {
+#gma-attendance-fields [type="radio"] + span, #gma-attendance-fields [type="radio"]: checked + span {
 	color: rgba(0,0,0,0.87);
-    padding-left: 0;
-    padding-right: 8px;
+	padding-left: 0;
+	padding-right: 8px;
 }
-#gma-attendance-fields [type="number"] {
+#gma-attendance-fields [type="number"], #participant-attributes{
 	font-size: unset;
 	height: unset;
-	margin-left: 8px;
+	margin-left: 4px;
 }
 #gma-footer{
-    background: linear-gradient(#DDD, #999);
+	background: linear-gradient(#DDD, #999);
 	margin: 0px;
 	line-height: 20px;
 	padding: 0 12px;
 	position: relative;
 }
 #gma-version {
-    font-size: xx-small;
-    font-style: italic;
+	font-size: xx-small;
+	font-style: italic;
 	font-weight: bold;
-    vertical-align: baseline;
+	vertical-align: baseline;
 }
 #gma-version:hover{
 	cursor: pointer;
 }
 #close-settings, #close-help {
-    position: absolute;
+	position: absolute;
 	right: 0px;
-    top: 4px;
+	top: 4px;
 }
 #gma-help {
-    position: absolute;
-    right: 12px;
-    top: 0px;
+	position: absolute;
+	right: 12px;
+	top: 0px;
 }
 
 #gma-settings {
-    position: absolute;
-    right: 42px;
-    top: 0px;
+	position: absolute;
+	right: 42px;
+	top: 0px;
 }
 #gma-messages-div {
 	border-radius: 0px 0px 8px 8px;
@@ -223,41 +226,41 @@
 }
 #messages-div-title{
 	background: linear-gradient(#AAA, #DDD);
-	display:flex;
-    margin: 0;
+	display: flex;
+	margin: 0;
 	padding: 2px;
-    text-align: center;
+	text-align: center;
 }
 #prev-page, #next-page{
 	visibility: hidden;
 }
 #meeting-started-div{
-	display:none;
+	display: none;
 }
 .current-start-time{
 	font-weight: bold;
 	font-style: italic;
 }
 .help-footer{
-    border-top: 1px solid #888;
+	border-top: 1px solid #888;
 	font-size: smaller;
-    font-style: italic;
+	font-style: italic;
 	margin: 0;
-    padding-bottom: 8px;
-    padding-top: 12px;
-    text-align: center;
+	padding-bottom: 8px;
+	padding-top: 12px;
+	text-align: center;
 }
 div#gma-attendance-fields-body {
-    position: relative;
+	position: relative;
 }
 .in-meeting #p-attendance-summary, .meeting-over #p-attendance-summary {
 	display: block;
 }
 .in-meeting .nim{
 	visibility: hidden!important;
-} 
+}
 .in-meeting [showing="settings"] label {
-    //cursor: wait;
+	//cursor: wait;
 	//pointer-events: none;
 }
 [showing="settings"] #help-page-footer {
@@ -267,68 +270,68 @@ div#gma-attendance-fields-body {
 	display: block;
 }
 #p-attendance-summary {
-    background: linear-gradient(#AAA, #888);
-    border: 1px solid #777;
+	background: linear-gradient(#AAA, #888);
+	border: 1px solid #777;
 	border-top: 0px;
 	display: none;
-    border-radius: 0 0 8px 8px;
-    font-size: 10px;
-    margin: 0px;
-    padding: 2px 6px 1px 6px;
+	border-radius: 0 0 8px 8px;
+	font-size: 10px;
+	margin: 0px;
+	padding: 2px 6px 1px 6px;
 	position: absolute;
-    right: 4px;
-	text-align:right;
-    top: 30px;
+	right: 4px;
+	text-align: right;
+	top: 30px;
 	z-index: 3;
 }
 #attendance-summary, #sp-start-time{
 	display: block;
 }
 .updated .important-msg {
-    background-color: #efd567;
+	background-color: #efd567;
 	font-weight: bold;
 }
 .important-msg:before {
-    content: '***';
+	content: '***';
 	margin-right: 6px;
 }
 
 .updated #gma-version:before {
-    content: 'New';
+	content: 'New';
 	background-color: #efd567;
-    border: 1px solid red;
-    border-radius: 50%;
-    margin-right: 6px;
-    padding: 2px 6px;
+	border: 1px solid red;
+	border-radius: 50%;
+	margin-right: 6px;
+	padding: 2px 6px;
 }
 .updated #gma-version{
-	color:red;
+	color: red;
 }
 
 #sp-start-time:before {
-    content: 'Start: ';
+	content: 'Start: ';
 }
 #sp-duration:before {
-    content: "✔  Duration: ";
-    color: unset;
-    font-weight: normal;
+	content: "✔ Duration: ";
+	color: unset;
+	font-weight: normal;
 }
-#sp-duration:after {
-    content: 'min';
+#sp-duration: after {
+	content: 'min';
 }
 #gma-class-list-header, #gma-settings-header, #gma-add-class{
 	width: 336px;
 }
 #add-class, #cancel-add{
-	display:none;
+	display: none;
 }
 #cancel-add{
-	display:none;
+	display: none;
 }
 #add-class-message{
 	background-color: lightyellow;
-	display:none;
-	margin:0;
+	display: none;
+	margin: 0;
 	padding: 1px 8px;
 }
 #gma-add-class{
@@ -336,34 +339,36 @@ div#gma-attendance-fields-body {
 }
 .warning{
 	background-color: lightyellow;
-    border-radius: 4px;
+	border-radius: 4px;
 	font-weight: bold;
 	padding: 2px 4px;
 }
 .bold{
-    background-color: #ffdd00!important;
+	background-color: #ffdd00!important;
 	border: 2px solid darkred;
 	color: darkred;
 	font-weight: bold;
 }
 #nav-btn {
-    height: 15px;
-    vertical-align: top;
+	height: 15px;
+	vertical-align: top;
 }
 [auto-hide-count-down="0"] #auto-hide-text {
-    display: none;
+	display: none;
 }
 li.warning p {
-    margin: auto;
-    font-weight: normal;
+	margin: auto;
+	font-weight: normal;
 }
 #current-start-time, #current-time {
-    font-weight: bold;
-    color: darkblue;
+	font-weight: bold;
+	color: darkblue;
 }
 
 #help-page-body {
-    padding-left: 20px;
+	display: flex;
+	flex-flow: column;
+	padding-left: 20px;
 }
 #help-page-body p{
 	margin: 6px 0;
@@ -371,117 +376,270 @@ li.warning p {
 .settings-label{
 	color: unset!important;
 	cursor: pointer;
-	display: block;
+	display: unset;
+	flex: 1;
 	font-size: unset;
+	width: max-content;
 }
 .settings-label input, .settings-label button{
 	margin-left: 8px;
 }
  .settings-label button{
 	cursor: pointer;
+	margin-left: 8px;
 }
 #auto-hide-updates{
 	text-align: right;
-    width: 32px;
+	width: 32px;
 }
 #max-num-names{
 	text-align: right;
-    width: 38px;
+	width: 40px;
 }
 #auto-hide-updates-label::after {
-    content: ' seconds';	
+	content: ' seconds';
 }
-
 #gma-attendance-fields h2 {
-    font-size: revert;
-    font-weight: revert;
+	font-size: revert;
+	font-weight: revert;
 }
-
 .gma-toggle{
 	cursor: pointer;
 	margin-left: 8px;
-    opacity: .8;
-	position:relative;
+	opacity: .8;
+	position: relative;
 	vertical-align: text-bottom;
 }
 .gma-toggle:hover {
-    opacity: 1;
+	opacity: 1;
 }
 .in-meeting .gma-toggle{
 	display: none;
 }
 .gma-toggle-bar {
-    background-color: #1a73e8;
-    border-radius: 8px;
-    display: inline-block;
-    height: 12px;
-	opacity:.5;
+	background-color: #1a73e8;
+	border-radius: 8px;
+	display: inline-block;
+	height: 12px;
+	opacity: .5;
 	vertical-align: middle;
-    width: 28px;
+	width: 28px;
 }
 .gma-toggle-ball {
-    background-color: #1a73e8;
-    border-radius: 8px;
+	background-color: #1a73e8;
+	border-radius: 8px;
 	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .4);
-    display: inline-block;
-    height: 16px;
-    position: absolute;
-    top: 1px;
+	display: inline-block;
+	height: 16px;
+	position: absolute;
+	top: 1px;
 	right: 0;
-    width: 16px;
+	width: 16px;
 }
-[data-enabled="false"]  .gma-toggle-bar {
-	 background-color: #bdc1c6;
-	 transition: transform linear 80ms, background-color linear 80ms;
+[data-enabled="false"] .gma-toggle-bar {
+	background-color: #bdc1c6;
+	transition: transform linear 80ms, background-color linear 80ms;
 }
-[data-enabled="false"]  .gma-toggle-ball {
-	 background-color: #fff;
-	 left: 0;
-	 transition: transform linear 80ms, background-color linear 80ms;
+[data-enabled="false"] .gma-toggle-ball {
+	background-color: #fff;
+	left: 0;
+	transition: transform linear 80ms, background-color linear 80ms;
 }
 [data-at-max-students="true"] #invited-list {
-    background: pink;
-    cursor: help;
+	background: pink;
+	cursor: help;
 }
 label#generate-log-label {
-    border-top: 1px solid;
-    margin-top: 10px;
-    padding-top: 6px;
+	border-top: 1px solid;
+	margin-top: 10px;
+	padding-top: 6px;
 }
 .checking{
 	animation-name: pulse;
 	animation-duration: 0.5s;
-	animation-iteration-count:1;
+	animation-iteration-count: 1;
 }
 @keyframes pulse {
 	0% {
-		background-color: transparent;
+	background-color: transparent;
 	}
 	50% {
-		background-color: blue!important;
-		border: 2px solid red;
+	background-color: blue!important;
+	border: 2px solid red;
 	}
 	100% {
-		background-color: red!important;
-		border: 4px solid red;
+	background-color: red!important;
+	border: 4px solid red;
 	}
 }
 .save-needed {
-    outline: 2px solid red;
-    background-color: yellow;
+	outline: 2px solid red;
+	background-color: yellow;
 }
 #class-notes{
 	display: none;
 	width: calc(100% - 6px);
 }
+#class-notes:focus{
+	position: absolute;
+	z-index: 9;
+}
 .in-meeting #class-notes{
 	display: block;
 }
-
 .in-meeting #class-notes:focus{
-	height:100px;
+	height: 100px;
 }
 .meeting-over #class-notes{
 	display: block;
-	height:200px;
+	height: 200px;
+}
+#participant-attributes {
+	color: #FFF;
+	width: 12px;
+}
+#participant-attributes:focus {
+	color: unset;
+	width: 264px
+}
+#student-buttons{
+	display: flex;
+	flex-flow: column;
+	min-height: 66px;
+	max-height: 116px;
+	overflow-y: scroll;
+}
+#student-buttons:empty:before {
+	background: #ddd;
+	color: #c33535;
+	content: "To add names to this class, either start a Meet (and let the extension will add them for you) or click the edit class list button above and type/paste the names";
+	font-weight: bold;
+	padding: 4px;
+	text-align: center;
+	width: 337px;
+}
+#student-buttons.editting{
+	display: none;
+}
+.student-button {
+	background: #ddd;
+	border: 1px solid #777;
+	border-radius: 4px;
+	cursor: pointer;
+	opacity: 0.66;
+	margin: 0px 4px 1px 1px;
+	padding: 0 6px;
+	text-transform: capitalize;
+}
+.student-button:hover {
+	border-color: #333;
+	opacity: 1;
+}
+.student-button:active {
+	background: #777;
+	color: #eee;
+	margin-bottom: 0;
+	opacity: .33;
+}
+.std-pres, [data-status='✔'] {
+	background: #3b7703cc;
+}
+.std-pres:before, [data-status='✔']:before {
+	content: "✔ ";
+}
+.std-new, [data-status='?']{
+	background: #f7d842;
+}
+.std-new:before, [data-status='?']:before {
+	content: "? ";
+}
+.std-abs, [data-status=''] {
+	background-color: #ffccccaa;
+}
+#student-edit-div {
+	display: none;
+	flex-flow: column;
+	padding: 4px 0 6px 3px;
+}
+#student-edit-div input{
+	max-width: 50%;
+	position: relative;
+}
+#gma-edit-buttons {
+	position: absolute;
+	right: 8px;
+}
+#save-student-edits{
+	display: none;
+}
+.current-edit{
+	border-color: red;
+}
+#student-edit-div label {
+	padding: 0 0 0 5px;
+}
+#student-edit-div input {
+	left: 59px;
+	position: absolute;
+}
+label.default::after {
+	color: red;
+	content: "*";
+}
+.input-label {
+	display: inline-block;
+	margin-right: 4px;
+	min-width: 160px;
+	text-align: right;
+}
+.settings-label label {
+	display: inline-block;
+	min-width: 52px;
+}
+#generate-log-label:after, #send-log-to-console-label:after{
+	color: #00316b;
+	content: " <-- only if recommended by Al";
+	font-size: small;
+	font-style: italic;
+}
+#check-for-page-changes-label:after{
+	color: #00316b;
+	content: " <-- should not be necessary...";
+	font-size: small;
+	font-style: italic;
+}
+#auto-clear-checks-label:after{
+	color: #00316b;
+	content: " (recommended)";
+	font-size: small;
+	font-style: italic;
+}
+#save-html-file, #save-csv-file {
+    visibility: hidden;
+}
+.in-meeting [data-generate-files="both"] #save-html-file,
+.in-meeting [data-generate-files="html"] #save-html-file, 
+.in-meeting [data-generate-files="both"] #save-csv-file, 
+.in-meeting [data-generate-files="csv"] #save-csv-file, 
+.meeting-over [data-generate-files="both"] #save-html-file, 
+.meeting-over [data-generate-files="html"] #save-html-file, 
+.meeting-over [data-generate-files="both"] #save-csv-file, 
+.meeting-over [data-generate-files="csv"] #save-csv-file {
+    display: inline-block;
+	visibility: visible;
+}
+#student-buttons::-webkit-scrollbar {
+  width: 10px;
+}
+#student-buttons::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 4px grey;
+  border-radius: 8px;
+}
+#student-buttons::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 6px;
+  opacity: 0.66
+}
+#student-buttons::-webkit-scrollbar-thumb:hover {
+  opacity: 1
 }

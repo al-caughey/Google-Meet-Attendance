@@ -3,7 +3,7 @@
     "description": "A simple(r) way to record who attended a Google Meet session",
     "permissions": [ "storage" ],
     "manifest_version": 2,
-    "version": "0.9.0",
+    "version": "1.0.0",
 	"author": "Al Caughey",
 	"background": {
 		"scripts": ["js/background.js"]
@@ -23,7 +23,7 @@
 				"css/styles.css"
 			],
 			"js": [
-				"js/draggable.js", "js/translations.js", "js/early-loaders.js", "js/updates.js", "js/html-template.js", "js/attendance.js"
+				"js/draggable.js", "js/translations.js", "js/early-loaders.js", "js/updates.js", "js/classbuttons.js", "js/html-template.js", "js/attendance.js"
 			],
 			
 			"run_at": "document_idle",
