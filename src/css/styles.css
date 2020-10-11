@@ -113,7 +113,30 @@
 	margin: 0 2px;
 	opacity: .66;
 	vertical-align: text-bottom;
+	white-space: nowrap;
 	width: 22px;
+}
+#p-attendance-summary .gma-btn:hover {
+    font-weight: bold;
+    text-decoration: underline;
+}
+#p-attendance-summary .gma-btn {
+    height: unset;
+    padding: 0 2px;
+    text-align: center;
+    width: min-content;
+}
+#p-attendance-summary .gma-btn.checked:after{
+	content: " ✔"
+}
+#attendance-present:before {
+    content: "Present: ";
+}
+#attendance-absent:before {
+    content: "Absent: ";
+}
+#attendance-new:before {
+    content: "New: ";
 }
 .gma-video-link{
 	opacity: .66;
@@ -253,7 +276,10 @@
 div#gma-attendance-fields-body {
 	position: relative;
 }
-.in-meeting #p-attendance-summary, .meeting-over #p-attendance-summary {
+#p-attendance-summary.hidden, #class-notes.hidden{
+	display: none!important;
+}
+.in-meeting #class-notes, .meeting-over #class-notes {
 	display: block;
 }
 .in-meeting .nim{
@@ -269,23 +295,22 @@ div#gma-attendance-fields-body {
 .in-meeting [showing="settings"] #help-page-footer {
 	display: block;
 }
+
 #p-attendance-summary {
+	display: none;
+}
+.in-meeting #p-attendance-summary {
 	background: linear-gradient(#AAA, #888);
 	border: 1px solid #777;
 	border-top: 0px;
-	display: none;
-	border-radius: 0 0 8px 8px;
+	display: flex;
+	border-radius: 0 0 8px 8px ;
 	font-size: 10px;
 	margin: 0px;
 	padding: 2px 6px 1px 6px;
-	position: absolute;
-	right: 4px;
-	text-align: right;
-	top: 30px;
-	z-index: 3;
 }
-#attendance-summary, #sp-start-time{
-	display: block;
+#p-attendance-summary span {
+	flex: auto;
 }
 .updated .important-msg {
 	background-color: #efd567;
@@ -484,15 +509,8 @@ label#generate-log-label {
 	position: absolute;
 	z-index: 9;
 }
-.in-meeting #class-notes{
-	display: block;
-}
 .in-meeting #class-notes:focus{
 	height: 100px;
-}
-.meeting-over #class-notes{
-	display: block;
-	height: 200px;
 }
 #participant-attributes {
 	color: #FFF;
@@ -519,7 +537,7 @@ label#generate-log-label {
 	width: 337px;
 }
 #student-buttons.editting{
-	display: none;
+	//display: none;
 }
 .student-button {
 	background: #ddd;
@@ -541,6 +559,9 @@ label#generate-log-label {
 	margin-bottom: 0;
 	opacity: .33;
 }
+.student-button.hidden{
+	display: none;
+}
 .std-pres, [data-status='✔'] {
 	background: #3b7703cc;
 }
@@ -553,38 +574,51 @@ label#generate-log-label {
 .std-new:before, [data-status='?']:before {
 	content: "? ";
 }
-.std-abs, [data-status=''] {
+.std-abs, .in-meeting [data-status=''] , .meeting-over [data-status=''] {
 	background-color: #ffccccaa;
 }
 #student-edit-div {
 	display: none;
-	flex-flow: column;
 	padding: 4px 0 6px 3px;
+	position:relative;
 }
 #student-edit-div input{
-	max-width: 50%;
-	position: relative;
+	max-width: 136px;
+}
+#student-edit-div input::placeholder {
+    color: #bbb;
+    font-style: italic;
 }
 #gma-edit-buttons {
+    display: flex;
 	position: absolute;
 	right: 8px;
+	top: 8px;
+    width: unset;
 }
 #save-student-edits{
-	display: none;
+	visibility: hidden;
 }
 .current-edit{
-	border-color: red;
+	font-weight: bold;
+    background: #6ae7fb!important;
+    border-width: 2px;
 }
-#student-edit-div label {
-	padding: 0 0 0 5px;
+.current-edit:after {
+	color: blue;
+    content: '🖉';
+    padding-left: 4px;
 }
-#student-edit-div input {
-	left: 59px;
-	position: absolute;
+.edit-label {
+    display: inline-block;
+    padding-right: 4px;
+    text-align: right;
+	width: 76px;
+}
 }
 label.default::after {
 	color: red;
-	content: "*";
+	content: " *";
 }
 .input-label {
 	display: inline-block;
@@ -594,17 +628,17 @@ label.default::after {
 }
 .settings-label label {
 	display: inline-block;
-	min-width: 52px;
+	min-width: 60px;
 }
 #generate-log-label:after, #send-log-to-console-label:after{
 	color: #00316b;
-	content: " <-- only if recommended by Al";
+	content: " \2190 only if recommended by Al";
 	font-size: small;
 	font-style: italic;
 }
 #check-for-page-changes-label:after{
 	color: #00316b;
-	content: " <-- should not be necessary...";
+	content: " \2190 should not be necessary...";
 	font-size: small;
 	font-style: italic;
 }
@@ -614,17 +648,19 @@ label.default::after {
 	font-size: small;
 	font-style: italic;
 }
+#participant-attributes-label:after{
+	color: #00316b;
+	content: " \2190 experimental (not recommended)";
+	font-size: small;
+	font-style: italic;
+}
 #save-html-file, #save-csv-file {
     visibility: hidden;
 }
-.in-meeting [data-generate-files="both"] #save-html-file,
-.in-meeting [data-generate-files="html"] #save-html-file, 
-.in-meeting [data-generate-files="both"] #save-csv-file, 
-.in-meeting [data-generate-files="csv"] #save-csv-file, 
-.meeting-over [data-generate-files="both"] #save-html-file, 
-.meeting-over [data-generate-files="html"] #save-html-file, 
-.meeting-over [data-generate-files="both"] #save-csv-file, 
-.meeting-over [data-generate-files="csv"] #save-csv-file {
+.in-meeting[data-save-needed-html="true"] #save-html-file,
+.in-meeting[data-save-needed-csv="true"] #save-csv-file, 
+.meeting-over[data-save-needed-html="true"] #save-html-file,
+.meeting-over[data-save-needed-csv="true"] #save-csv-file {
     display: inline-block;
 	visibility: visible;
 }
@@ -642,4 +678,21 @@ label.default::after {
 }
 #student-buttons::-webkit-scrollbar-thumb:hover {
   opacity: 1
+}
+#prev-student {
+    position: absolute;
+    left: 8px;
+    top: 22px;
+}
+#next-student {
+    position: absolute;
+    right: 8px;
+    top: 22px;
+}
+#student-edit-div p {
+    margin: 0;
+}
+[data-comments]:not([data-comments=""]):after {
+	content: "💬";
+	padding-left: 4px; 
 }

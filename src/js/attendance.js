@@ -12,36 +12,38 @@
 
 	let __GMA_ClassLists
 	chrome.storage.sync.get( null, function(r) {
-		console.log(r)
-		if(!!r[ '__GMA_ClassLists' ] ) return
-		backupOldClassLists()
-		__GMA_ClassLists = {}
-		console.log( 'resetting __GMA_ClassLists' )
-		let cls = r[ '__Class-Info' ]
-		let classInfo = ( !cls||cls === '' )?{}:JSON.parse(cls)
-		for (let [ code, name ] of Object.entries( classInfo )) {
-			let cc=code.replace( / /g, '-' ).trim()
-			let nm=name.trim()
-			if ( !__GMA_ClassLists[cc] ) __GMA_ClassLists[cc]={ n:nm, s:{} }
-			if( !r[ '__Class-'+cc] ) continue
-			let cl=r[ '__Class-'+cc].replace( /[\?✔]*/g, '' ).split( '\n' )
-			for ( let sn of cl ) {
-				__GMA_ClassLists[ cc ].s[ sn ]={ d: '', e: ''}
+		//console.log(r)
+		if( r[ 'sort-names' ] == 'none' ){
+			chrome.storage.sync.set( { 'sort-names' : 'last' }, null)
+		}
+		if( !r[ '__GMA_ClassLists' ] ) {		
+			backupOldClassLists()
+			__GMA_ClassLists = {}
+			write2log( 'resetting __GMA_ClassLists' )
+			let cls = r[ '__Class-Info' ]
+			let classInfo = ( !cls||cls === '' )?{}:JSON.parse(cls)
+			for (let [ code, name ] of Object.entries( classInfo )) {
+				let cc=code.replace( / /g, '-' ).trim()
+				let nm=name.trim()
+				if ( !__GMA_ClassLists[cc] ) __GMA_ClassLists[cc]={ n:nm, s:{} }
+				if( !r[ '__Class-'+cc] ) continue
+				let cl=r[ '__Class-'+cc].replace( /[\?✔]*/g, '' ).split( '\n' )
+				for ( let sn of cl ) {
+					__GMA_ClassLists[ cc ].s[ sn ]={ d: '', e: ''}
+				}
+				chrome.storage.sync.remove( '__Class-Info' )
+				if ( !!r[ '__Class-'+cc ] ) chrome.storage.sync.remove( '__Class-' + cc )
 			}
-			chrome.storage.sync.remove( '__Class-Info' )
-			if ( !!r[ '__Class-'+cc ] ) chrome.storage.sync.remove( '__Class-' + cc )
+			let generateFiles = r[ 'auto-save-html' ] == true && r[ 'auto-save-csv' ] == true ? 'both' : ( r[ 'auto-save-html' ] == true ? 'html' : ( r[ 'auto-save-csv' ] == true ? 'csv' : 'neither' ) ) 
+			let saveFiles = r[ 'auto-save-html' ] == true && r[ 'auto-save-csv' ] == true ? 'both' : ( r[ 'auto-save-html' ] == true ? 'html' : ( r[ 'auto-save-csv' ] == true ? 'csv' : 'neither' ) ) 
+			chrome.storage.sync.set( { 'generate-files' : _generateFiles }, null)
+			chrome.storage.sync.set( { 'auto-save-files' : saveFiles }, null)
+			chrome.storage.sync.remove( 'auto-save-html', null )
+			chrome.storage.sync.remove( 'auto-save-csv', null )
+			chrome.storage.sync.set( { '__GMA_ClassLists' : __GMA_ClassLists }, null)
+
+			//console.log(__GMA_ClassLists)
 		}
-		let generateFiles = r[ 'auto-save-html' ] == true && r[ 'auto-save-csv' ] == true ? 'both' : ( r[ 'auto-save-html' ] == true ? 'html' : ( r[ 'auto-save-csv' ] == true ? 'csv' : 'neither' ) ) 
-		let saveFiles = r[ 'auto-save-html' ] == true && r[ 'auto-save-csv' ] == true ? 'both' : ( r[ 'auto-save-html' ] == true ? 'html' : ( r[ 'auto-save-csv' ] == true ? 'csv' : 'neither' ) ) 
-		chrome.storage.sync.set( { 'generate-files' : _generateFiles }, null)
-		chrome.storage.sync.set( { 'auto-save-files' : saveFiles }, null)
-		chrome.storage.sync.remove( 'auto-save-html', null )
-		chrome.storage.sync.remove( 'auto-save-csv', null )
-		chrome.storage.sync.set( { '__GMA_ClassLists' : __GMA_ClassLists }, null)
-		for (var key in r){
-			//console.log( key, r[key] )
-		}
-		console.log(__GMA_ClassLists)
 	} )
 	
 	// globals
@@ -52,7 +54,7 @@
 	// simple function that waits until a specific element exists in the DOM...
 	// (adapted from Stack Overflow)
 	function waitForElement(elementPath, callBack){
-		console.log( 'Waiting for: ' + elementPath )
+		//console.log( 'Waiting for: ' + elementPath )
 		
 		let waitfor=elementPath==='[data-call-ended = "true"]'?10000:2500
 		
@@ -72,7 +74,7 @@
 	}
 	// build the select/options for the list of classes
 	function setClassList( p ){
-		console.log( 'setClassList' )
+		//console.log( 'setClassList' )
 		function addOption( pe, t, v, tt ){
 			let o = document.createElement( 'option' )
 			o.innerText = t
@@ -115,18 +117,36 @@
 			let fileName=currentClassCode + ' ( '+cdate+' ).csv'
 			
 			// prepend file outputs with UTF-8 BOM
-			let header = '\ufeff' + 'Attendance for: ' + ccn + ' on ' + cdate + '\n'
+			let header = '\ufeff' + '"Attendance for:","' + ccn + '"\n"Date:", "' + cdate + '", "Time:", "' + sessionStorage.getItem( 'Meeting-start-time' ) + '", "Meet ID:", "' + sessionStorage.getItem( '_activeMeetIDs' ) + '"\n'
 			let cno=sessionStorage.getItem( 'class-notes' )||''
 			header = header + ( cno == '' ? '' : 'Class notes:, "' + cno.trim() + '"') + '\n'
-			header = header + 'Names' + '\t' + cdate + ' ' + sessionStorage.getItem( 'Meeting-start-time' ) + '\t' + 'Arrival time' + '\n'
+			header = header + '"Names", "Email", "Comments", "Arrival time", "Last Seen", "# of Checks", "Joined", "Details"\n'
 			
 			let joined = /^\s*( [✔\?] )(\s*)(.*)$/gm
 			let txt = document.getElementById( 'invited-list' ).value.replace(joined, "$3" + '\t' + "$1" )
+			let connections = {}
 			for (let pid in _arrivalTimes){
 				let re_name = new RegExp( '(' + _arrivalTimes[pid].name + '.*)', 'i' )
 				txt = txt.replace( re_name, '$1' + ',' + _arrivalTimes[pid].arrived + ' (' + ( _arrivalTimes[pid].checks.length||0 ) + 'min) [ '+_arrivalTimes[pid].last_seen + ' ]' )
+				
+				ln = _arrivalTimes[pid].name.trim().toLowerCase()
+				if ( !connections[ ln ] ) {
+					//console.log( ln + ' not in studentNames', connections)
+					connections[ ln ] = {  arrived : '', last_seen : '', checks : '', joined : 0 , details : [] }
+				}
+				if ( connections[ ln ].arrived == '' || _arrivalTimes[pid].arrived < connections[ ln ].arrived ){
+					connections[ ln ].arrived =_arrivalTimes[pid].arrived
+				}
+				if ( connections[ ln ].last_seen == '' || _arrivalTimes[pid].last_seen > connections[ ln ].last_seen ){
+					connections[ ln ].last_seen =_arrivalTimes[pid].last_seen
+				}
+				connections[ ln ].checks = connections[ ln ].checks*1 + 1*(_arrivalTimes[pid].checks.length)
+				connections[ ln ].joined++
+				connections[ ln ].details.push( '"' + _arrivalTimes[pid].arrived + ' (' + ( _arrivalTimes[pid].checks.length||0 ) + 'min) [ '+_arrivalTimes[pid].last_seen + ' ]"' )
 			}
-			let blob = new Blob( [header+txt], {type: 'text/plain;charset=UTF-8'} )
+			let csvText = getButtonListCSV( connections )
+			let footer= '\n\n"Help/more info:", "https://www.facebook.com/GoogleMeetAttendance/posts/209211534096819"\nThis file was generated by the Google Meet Attendance extension: https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd/publish-accepted?authuser=0&hl=en'
+			let blob = new Blob( [ header + csvText + footer ], {type: 'text/plain;charset=UTF-8'} )
 			
 			let temp_a = document.createElement( 'a' )
 			temp_a.download = fileName
@@ -135,14 +155,15 @@
 			
 			write2log( 'Saved CSV file ' +  ccn + ' ( '+cdate+' ).csv' )
 
-			document.getElementById( 'save-csv-file' ).style.visibility = 'hidden'
+			document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv', false )
 		})
 	}
 	
 	// tidy up if the user chooses not to add a class
 	function doNotAddClass(){
 		//console.log( 'doNotAddClass',ddStrings.not_added)
-		document.getElementById( 'add-class-message' ).innerText=ddStrings.not_added
+		document.getElementById( 'add-class-message' ).innerText = ddStrings.not_added
+		document.getElementById( 'add-class-message' ).style.display = 'block'
 		document.getElementById( 'class-delete' ).style.visibility = 'visible'
 		document.getElementById( 'gma-attendance-fields' ).classList.add( 'empty' )
 		document.getElementById( 'select-class' ).style.display = 'inline-block'
@@ -154,29 +175,42 @@
 			document.getElementById( 'select-class' ).value=currentClassCode
 			changeClass()
 		} )
-		autoHideAddClassMessage()
+		autoHideAddClassMessage(1500)
 	}
 	// add a new class to the drop down list
 	function addClass(){
-		console.log( 'addClass' )
+		//console.log( 'addClass' )
 		let cn = document.getElementById( 'class-name' ).value.trim()
 		let cc = cn.replace(/ /g, '-' )
 		if(cc=='' ){
 			doNotAddClass()
 			return
 		}
-		let hdr = document.getElementById( 'named-classes' )
-		let no = document.createElement( 'option' );
-		no.text = cn;
-		no.value = cc;
-		hdr.appendChild(no)
-		
 		document.getElementById( 'select-class' ).value = cc;
 		chrome.storage.sync.set( {'Current-Class-Code': cc}, null )
 		sessionStorage.setItem( '_Class4ThisMeet', cc)
 		
 		chrome.storage.sync.get( [ '__GMA_ClassLists' ], function (r) {
 			let gcls = r[ '__GMA_ClassLists' ]
+			if( !! gcls[cc] ) {
+				if ( !confirm( 'Do you want to replace the existing class with the same name?' ) ){
+					return false
+				}
+			}
+			else{
+				let hdr = document.getElementById( 'named-classes' )
+				let no = document.createElement( 'option' );
+				no.text = cn;
+				no.value = cc;
+				hdr.appendChild(no)
+				opts=document.querySelectorAll('#named-classes option')
+				Array.from ( opts ).sort(function(a,b){
+					let aa=a.value, bb=b.value
+					return aa > bb ? 1 : aa == bb ? 0 : -1
+				}).forEach(el => {
+					document.querySelector('#named-classes').appendChild(el);
+				})
+			}
 			gcls[cc] = { n:cn, s:{} }
 			chrome.storage.sync.set( {'__GMA_ClassLists': gcls }, null)
 			
@@ -188,10 +222,12 @@
 			document.getElementById( 'add-class' ).style.display = 'none'
 			document.getElementById( 'cancel-add' ).style.display = 'none'
 			document.getElementById( 'add-class-message' ).innerText=ddStrings.added
+			document.getElementById( 'select-class' ).value=cc
 						
 			document.getElementById( 'invited-list' ).value=''
 			document.getElementById( 'student-buttons' ).innerHTML=''
 			
+		
 			autoHideAddClassMessage()
 			write2log( 'Added class: ' +  cn )
 
@@ -200,8 +236,8 @@
 	
 	// bulk edit the class list
 	function editClassList(){
-		console.log( 'editClassList' )
-		
+		//console.log( 'editClassList' )
+		cancelEditStudent()
 		if(document.getElementById( 'invited-list' ).classList.contains( 'being-editted' )){
 			blurClassList()
 		}
@@ -224,13 +260,12 @@
 			let gcls = r[ '__GMA_ClassLists' ]
 			
 			if(!confirm( 'Are you sure you want to delete this class: `' + currentClassCode + '`?  There is no undo!' )) return
-			
-			
-			chrome.storage.sync.remove( currentClassCode , null)
-
+						
+			delete gcls[ currentClassCode ]
+			document.querySelector( '#named-classes [value="' + currentClassCode + '"]' ).remove()
 			document.getElementById( 'gma-attendance-fields' ).classList.add( 'empty' )
-			document.getElementById( 'save-csv-file' ).style.visibility = 'hidden'
-			document.getElementById( 'save-html-file' ).style.visibility = 'hidden'
+			document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', false )
+			document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv', false )
 			_arrivalTimes = {} // clear the time of arrival array
 			sessionStorage.setItem( '_Class4ThisMeet', 'Class-List' )
 			document.getElementById( 'select-class' ).value = 'Class-List'
@@ -238,18 +273,19 @@
 			document.getElementById( 'student-buttons' ).innerHTML = ''
 			document.getElementById( 'class-delete' ).style.visibility = 'hidden'
 			write2log( 'Deleted class: ' +  currentClassCode )
+			chrome.storage.sync.set( { '__GMA_ClassLists': gcls }, null )
+			chrome.storage.sync.set( { 'Current-Class-Code': 'Class-List' }, null )
 			changeClass()
 		} )
 	}
 	// pick new class from drop-down
 	function changeClass(){
-		console.log( 'changeClass' )
+		//console.log( 'changeClass' )
 		blurClassList()
 		cancelEditStudent()
 
 		hideUpdateText()
 		if( document.getElementById( 'gma-attendance-fields' ).classList.contains( 'meeting-over' ) && ( document.getElementById( 'save-csv-file' ).style.visibility==="visible" ||  document.getElementById( 'save-html-file' ).style.visibility==="visible" ) ){
-			document.getElementById( 'gma-attendance-fields' ).classList.remove( 'meeting-over' )
 			if( !confirm( 'There may be unsaved information for the current class.  Changing to a new class will result in the loss that info. \n\nAre you sure you want to change?  There is no undo!' )){
 				chrome.storage.sync.get( [ 'Current-Class-Code' ], function (r) {
 					document.getElementById( 'select-class' ).value=r[ 'Current-Class-Code' ]
@@ -261,6 +297,8 @@
 		let currentSelectOption = document.getElementById( 'select-class' ).value.replace(/ /g, '-' )
 
 		document.getElementById( 'class-notes' ).value=''
+		document.getElementById( 'gma-attendance-fields' ).classList.remove( 'meeting-over' )
+		document.getElementById( 'gma-attendance-fields' ).classList.remove( 'in-meeting' )
 		sessionStorage.setItem( 'class-notes', '' )
 		if(currentSelectOption === '+' ){
 			addClassInfo()
@@ -272,7 +310,7 @@
 
 			chrome.storage.sync.get( [ '__GMA_ClassLists' ], function (r) {
 				let gcls = r[ '__GMA_ClassLists' ]||{}
-				let currentClassName = gcls[ currentSelectOption ].n
+				let currentClassName = !!gcls[ currentSelectOption ] ? gcls[ currentSelectOption ].n : 'Class '
 				document.getElementById( 'class-name' ).value = currentClassName
 				write2log( 'Changed class to: ' +  currentClassName )
 
@@ -284,6 +322,7 @@
 				_arrivalTimes = {} // clear the time of arrival array
 				sessionStorage.removeItem( 'Meeting-start-time' )
 				sessionStorage.removeItem( '_arrivalTimes' )
+				sessionStorage.removeItem( '_studentsAtThisMeet' )
 				if( document.querySelectorAll( '.student-button' ).length === 0 ){
 					document.getElementById( 'gma-attendance-fields' ).classList.add( 'empty' )
 				}
@@ -293,8 +332,9 @@
 					checkClearAttendance()
 				}
 
-				document.getElementById( 'save-csv-file' ).style.visibility = 'hidden'
-				document.getElementById( 'save-html-file' ).style.visibility = 'hidden'
+				document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', false )
+				document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv', false )
+
 				if( currentSelectOption === 'Class-List' ) document.getElementById( 'class-delete' ).style.visibility = 'hidden'
 				
 				if ( document.getElementById( 'gma-attendance-fields' ).classList.contains( 'in-meeting' )) {
@@ -305,9 +345,9 @@
 	}
 	// called when add is selected from the drop-down
 	function addClassInfo(){
-		console.log( 'addClassInfo' )
+		//console.log( 'addClassInfo' )
 		document.getElementById( 'gma-class-list-header' ).style.display='none'
-		document.getElementById( 'invited-list' ).style.display='none'
+		document.getElementById( 'invited-list' ).classList.remove( 'being-editted' )
 		document.getElementById( 'invited-list' ).value = ''
 		document.getElementById( 'student-buttons' ).innerHTML = ''
 		document.getElementById( 'gma-add-class' ).style.display='block'
@@ -324,7 +364,7 @@
 	}
 	// called when reset is selected from the drop-down
 	function resetClassInfo(){
-		console.log( 'resetClassInfo' )
+		//console.log( 'resetClassInfo' )
 		if(!confirm( 'Are you sure you want to delete *all* of your class info?  There is no undo!' )){
 			document.getElementById( 'select-class' ).value = sessionStorage.getItem( '_Class4ThisMeet' )
 			return
@@ -360,7 +400,7 @@
 	}
 	
 	function checkClearAttendance(){
-		console.log( 'checkClearAttendance()' )
+		//console.log( 'checkClearAttendance()' )
 		if( document.querySelectorAll('[data-status="✔"],[data-status="?"]').length===0 )	return 
 		
 		if( !sessionStorage.getItem( 'Meeting-start-time' ) ) {
@@ -377,14 +417,14 @@
 	
 	// load the names associated with a class
 	function loadClassNames(){
-		console.log( 'loadClassNames' )
+		//console.log( 'loadClassNames' )
 		chrome.storage.sync.get( [ '__GMA_ClassLists', 'Current-Class-Code' ], function (r) {
 			let currentClassCode = sessionStorage.getItem( '_Class4ThisMeet' )||r[ 'Current-Class-Code' ]||'Class-List'
-			console.log('loadClassNames --> currentClassCode', currentClassCode, !!r[ '__GMA_ClassLists' ][currentClassCode] )
+			//console.log('loadClassNames --> currentClassCode', currentClassCode, !!r[ '__GMA_ClassLists' ][currentClassCode] )
 			let className = !r[ '__GMA_ClassLists' ][ currentClassCode ]?'Class List':r[ '__GMA_ClassLists' ][ currentClassCode ].n
 			addClassButtons()
 			
-			console.log( 'loadClassNames --> className', className )
+			//console.log( 'loadClassNames --> className', className )
 			if( document.querySelectorAll( '.student-button' ).length.length === 0 ){
 				document.getElementById( 'gma-attendance-fields' ).classList.add( 'empty' )
 			}
@@ -405,13 +445,13 @@
 		let st = document.getElementById( 'save-csv-file' ), ht = document.getElementById( 'save-html-file' )
 		document.getElementById( 'class-notes' ).value=document.getElementById( 'class-notes' ).value.trim()
 		sessionStorage.setItem( 'class-notes', document.getElementById( 'class-notes' ).value )
-		st.style.visibility = ( _generateFiles == 'both' || _generateFiles == 'csv') ? 'visible' : 'hidden'
-		ht.style.visibility = ( _generateFiles == 'both' || _generateFiles == 'html') ? 'visible' : 'hidden'
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', true )
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', true )
 	}
 
 	// remove all preceding ✔|? from the list of names in the textarea
 	function clearPresent(){
-		console.log( 'clearPresent' )
+		//console.log( 'clearPresent' )
 		hideUpdateText()
 		let currentClassCode = sessionStorage.getItem( '_Class4ThisMeet' )||'Class-List'
 		let invitees = document.getElementById( 'invited-list' );
@@ -430,7 +470,7 @@
 
 	// clear all of the names for the current class
 	function clearList(){
-		console.log( 'clearList' )
+		//console.log( 'clearList' )
 		hideUpdateText()
 		if(!confirm( 'Are you sure you want to delete *all* the names in this class?  There is no undo!' )){
 			return
@@ -445,8 +485,8 @@
 			chrome.storage.sync.set( {'__GMA_ClassLists': gcls },null)
 
 			document.getElementById( 'gma-attendance-fields' ).classList.add( 'empty' )
-			document.getElementById( 'save-csv-file' ).style.visibility = 'hidden'
-			document.getElementById( 'save-html-file' ).style.visibility = 'hidden'
+			document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', false )
+			document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv', false )
 			_arrivalTimes = {} // clear the time of arrival array
 			write2log( 'Clear all names for ' + currentClassCode )
 		} )
@@ -473,7 +513,7 @@
 
 			}
 			else if(status==='update' ){
-				alert('FYI - This update to the Google Meet Attendance extension makes some internal changes to its internal data structures.\n\nAs a precaution, `just-in-case`, a back-up of your current class names and student lists has been saved to your downloads directory.\n\nIf you have any questions, check the Facebook page:\n https://facebook.com/GoogleMeetAttendance.')
+				//alert('FYI - This update to the Google Meet Attendance extension makes some internal changes to its internal data structures.\n\nAs a precaution, `just-in-case`, a back-up of your current class names and student lists has been saved to your downloads directory.\n\nIf you have any questions, check the Facebook page:\n https://facebook.com/GoogleMeetAttendance.')
 				showUpdate()
 
 				document.getElementById( 'gma-attendance-fields' ).classList.add( 'updated' )
@@ -495,6 +535,7 @@
 		waitForElement( '[data-call-ended="true"]',function(){
 			write2log( '**** Meet ended ****' )
 			hideUpdateText()
+			getStudentNames()
 			let a_div = document.getElementById( 'gma-attendance-fields' )
 			a_div.style = ''
 			a_div.classList.remove( 'in-meeting' )
@@ -558,6 +599,7 @@
 			//document.getElementById( 'check-attendance' ).style.visibility = 'visible'
 			document.getElementById( 'start-time' ).style.visibility = 'visible'
 			document.getElementById( 'gma-attendance-fields' ).classList.add( 'in-meeting' )
+			document.getElementById( 'invited-list' ).classList.remove( 'being-editted' )
 
 			if(!sessionStorage.getItem( 'Meeting-start-time' ) || sessionStorage.getItem( 'Meeting-start-time' ) === '' ){
 				setStartTime()
@@ -589,18 +631,20 @@
 			if( document.querySelectorAll( '.student-button' ).length.length > 0 ){
 				document.getElementById( 'gma-attendance-fields' ).classList.remove( 'empty' )
 			}
-			checkParticipants()  // Check as soon as you join the Meet
 
 			//  If using Grid View and/or expanded Tiled layout, monitoring for changes *should* no longer be necessary
-			if (_checkPage4Changes){	// Create an observer instance to look for changes within the Meet page (detect new participants)
-					console.log( '_checkPage4Changes',_checkPage4Changes)
-					var observer = new MutationObserver(function( mutations ) {
-					checkParticipants()  // Check when ever there is an update to the screen
+			chrome.storage.sync.get( [ 'check-page-for-changes', 'participant-attributes' ], function( r ){
+				if ( !!r[ 'check-page-for-changes' ] ){	// Create an observer instance to look for changes within the Meet page (detect new participants)
+					//console.log( '_checkPage4Changes', _checkPage4Changes )
+					var observer = new MutationObserver( function( mutations ) {
+						checkParticipants()  // Check when ever there is an update to the screen
 
-				} );
-				// watch for changes (adding new participants to the Meet)
-				observer.observe(document.body, {childList:true, attributes:true, attributeFilter: [ 'data-self-name', 'data-participant-id', 'data-requested-participant-id' ], subtree:true, characterData:false} );
-			}
+					} );
+					// watch for changes (adding new participants to the Meet)
+					let af = r[ 'participant-attributes' ].split( ',' )
+					observer.observe( document.body, { childList : true, attributes : true, attributeFilter : af, subtree : true, characterData : false } );
+				}
+			})
 			
 			showMeetingStarted() // --> updates.js
 			
@@ -625,10 +669,10 @@
 		let cldh = addElement(gcld, 'p', 'gma-class-list-header', '', 'gma-header' )
 		let gac = addElement(gcld, 'p', 'gma-add-class', '', 'gma-header' )
 		addElement(gcld, 'p', 'add-class-message', '', '' )
+		let pas=addElement(gcld, 'p', 'p-attendance-summary', 'Not Monitoring Attendance!', '' )
 		let cnf = addElement(gcld, 'textarea', 'class-notes', 'If you want to add any notes related to this class...', '' )
 		let il = addElement(gcld, 'textarea', 'invited-list', 'Pick, paste or type your class list into this field', '' )
 		let gclb = addElement(gcld, 'div', 'gma-class-list-buttons', '', '' )
-		let pas=addElement(gcld, 'p', 'p-attendance-summary', 'Not Monitoring Attendance!', '' )
 		
 		//add class list header elements
 		let sc = addElement(cldh, 'select', 'select-class', 'Pick a class; pick Add to add your own classes' )
@@ -649,35 +693,52 @@
 		cnf.setAttribute( 'placeholder', 'Enter any notes specific to this class.' )
 		il.setAttribute( 'placeholder', 'Your class list goes here.\nClick the blue question mark below for help.' )
 				
-		addElement(gac, 'input', 'class-name', 'Enter the class name' )
+		let acn = addElement(gac, 'input', 'class-name', 'Enter the class name' )
 		let ac = addElement(gac, 'img', 'add-class', 'Add this class!', 'gma-btn' )
 		let ca = addElement(gac, 'img', 'cancel-add', 'Do *not* add this class!', 'gma-btn' )
 		document.getElementById( 'class-name' ).type = 'text'
 
-		addElement(pas, 'span', 'attendance-summary', '', '' )
+		let pasap = addElement(pas, 'span', 'attendance-present', '', 'gma-btn' )
+		let pasaa = addElement(pas, 'span', 'attendance-absent', '', 'gma-btn' )
+		let pasan = addElement(pas, 'span', 'attendance-new', '', 'gma-btn' )
 		addElement(pas, 'span', 'sp-start-time', '', '' )
 		addElement(pas, 'span', 'sp-duration', '', '' )
 		
 		gclbd = addElement(gclb, 'div', 'student-buttons', '', '' )
 		gclbd = addElement(gclb, 'div', 'student-edit-div', '', '' )
-		let sp = addElement(gclbd, 'label', '', 'Enter the login name', '', 'Login: ' )
-		let gln = addElement(sp, 'input', 'gma-login-name', 'Enter the login name' )
-		sp = addElement(gclbd, 'label', '', 'Enter the display name (if different from the login)', '', 'Display: ' )
-		let gdn = addElement(sp, 'input', 'gma-display-name', 'Enter the display name' )
-		sp = addElement(gclbd, 'label', '', 'Enter the email address', '', 'Email: ' )
-		let ge = addElement(sp, 'input', 'gma-email', 'Enter the email address ✉' )
+		let p = addElement(gclbd, 'p', '', 'Enter the login name', '', '' )
+		let sp = addElement(p, 'span', '', '', 'edit-label', 'Login: ' )
+		let gln = addElement(p, 'input', 'gma-login-name', 'Enter the login name' )
+		p = addElement(gclbd, 'p', '', "Enter the student's name", '', '' )
+		addElement(p, 'span', '', '', 'edit-label', 'Surname: ' )
+		let gsn = addElement(p, 'input', 'gma-surname', "Enter the student's name" )
+		p = addElement(gclbd, 'p', '', 'Enter the display name (if different from the login)', '', '' )
+		addElement(p, 'span', '', '', 'edit-label', 'Display: ' )
+		let gdn = addElement(p, 'input', 'gma-display-name', 'Enter the display name' )
+		p = addElement(gclbd, 'p', '', 'Enter the email address', '', '' )
+		addElement(p, 'span', '', '', 'edit-label', 'Email: ' )
+		let ge = addElement(p, 'input', 'gma-email', 'Enter the email address ✉' )
+		p = addElement(gclbd, 'p', '', 'Enter comments for this student', '', '' )
+		addElement(p, 'span', '', '', 'edit-label', 'Comments: ' )
+		let gsc = addElement(p, 'input', 'gma-comments', 'Enter comments for this student' )
 		gclbds=addElement(gclbd, 'span', 'gma-edit-buttons', '' )
+		let psb = addElement(gclbds, 'img', 'prev-student', 'Go to previous student', 'gma-btn' )
+		let nsb = addElement(gclbds, 'img', 'next-student', 'Go to next student', 'gma-btn' )
 		let sse = addElement(gclbds, 'img', 'save-student-edits', 'Save these changes', 'gma-btn' )
 		let ce= addElement(gclbds, 'img', 'cancel-student-edits', 'Cancel, do not save', 'gma-btn' )
 		let ds = addElement(gclbds, 'img', 'delete-student', 'Delete this Student', 'gma-btn' )
 		ge.type='email'
 		
-		sse.addEventListener( 'click', saveEditStudent, false)		
-		ce.addEventListener( 'click', cancelEditStudent, false)		
-		ds.addEventListener( 'click', deleteStudent, false)		
-		gln.addEventListener( 'change', editStudentChanged, false)
-		gdn.addEventListener( 'change', editStudentChanged, false)
-		ge.addEventListener( 'change', editStudentChanged, false)
+		sse.addEventListener( 'click', saveEditStudent, false )		
+		ce.addEventListener( 'click', cancelEditStudent, false )		
+		ds.addEventListener( 'click', deleteStudent, false )		
+		psb.addEventListener( 'click', prevStudent, false )		
+		nsb.addEventListener( 'click', nextStudent, false )		
+		gln.addEventListener( 'change', editStudentChanged, false )
+		gsn.addEventListener( 'change', editStudentChanged, false )
+		gdn.addEventListener( 'change', editStudentChanged, false )
+		ge.addEventListener( 'change', editStudentChanged, false )
+		gsc.addEventListener( 'change', editStudentChanged, false )
 		gclbd.onmousedown = stopProp;
 
 		//add messages div child elements
@@ -713,8 +774,6 @@
 
 		cd.style.visibility = 'hidden'
 		st.style.visibility = 'hidden'
-		scf.style.visibility = 'hidden'
-		shf.style.visibility = 'hidden'
 		gv.innerText = 'Google Meet Attendance - v'+chrome.runtime.getManifest().version
 
 		// set the behaviours
@@ -726,18 +785,20 @@
 		st.addEventListener( 'click', setStartTime, false)					// manually reset the class start time
 		scf.addEventListener( 'click', saveCSVFile, false)		// save the class list field to a textfile
 		shf.addEventListener( 'click', saveHTMLFile, false)		    // save the class list field to an HTML file
-		//document.getElementById( 'class-name' ).addEventListener( 'change', addClass, false)					// save the new named class
-		//document.getElementById( 'class-name' ).addEventListener( 'blur', addClass, false)				     	// save the new named class
-		ac.addEventListener( 'click', addClass, false)				// clear all of the attendance markings
-		ca.addEventListener( 'click', doNotAddClass, false)				// clear all of the attendance markings
+		ac.addEventListener( 'click', addClass, false)				// add a new class
+		ca.addEventListener( 'click', doNotAddClass, false)				// cancel adding a class
 		cnf.addEventListener( 'change', notesChanged, false);				// if the user edits the field
 		il.addEventListener( 'change', listChanged, false);				// if the user edits the field
 		il.addEventListener( 'blur', blurClassList, false)				// bulk edit the names in the classlist
 		gv.addEventListener( 'click', showUpdate, false)					// manually reset the class start time
 		gs.addEventListener( 'click', showSettings, false)					// open help
 		gh.addEventListener( 'click', showInstall, false)					// open help
+		pasap.addEventListener( 'click', filterButtons, false)					// open help
+		pasaa.addEventListener( 'click', filterButtons, false)					// open help
+		pasan.addEventListener( 'click', filterButtons, false)					// open help
 
 		gaf.onmousedown = stopProp;
+		acn.onmousedown = stopProp;
 		sc.onmousedown = stopProp;
 		cnf.onmousedown = stopProp;
 		il.onmousedown = stopProp;
@@ -761,14 +822,13 @@
 		if( !gaf.contains( 'meeting-over' ) && !gaf.contains( 'in-meeting' ) ) return undefined
 		
 		let shf=document.getElementById( 'save-html-file' ), scf=document.getElementById( 'save-csv-file' )
-		let shf_is=shf.style.visibility === 'visible'
-		let scf_is=scf.style.visibility === 'visible'
+		let shf_is=document.getElementById( 'gma-attendance-fields' ).getAttribute('data-save-needed-html' )
+		let scf_is=document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv' )
 		
 		shf.classList.remove( 'save-needed' )
 		scf.classList.remove( 'save-needed' )
 		
 		if( _autoSaveHTML && shf_is ){
-			shf.style.visibility = 'hidden'
 			shf_is=false
 			saveHTMLFile()
 		}
@@ -777,7 +837,6 @@
 		}
 		
 		if( _autoSaveCSV && scf_is ){
-			scf.style.visibility = 'hidden'
 			scf_is=false
 			saveCSVFile()
 		}
@@ -785,7 +844,6 @@
 			scf.classList.add( 'save-needed' )
 		}
 		if( !shf_is && !scf_is  ) return undefined
-		console.log( 'shf: ', shf_is, 'scf: ', scf_is)
 
 		let alrt = 'null message... no longer supported.';
 
@@ -812,7 +870,7 @@
 			write2log( 'Joined a different Meet --> previous: '+smids+' / current: '+_activeMeetID+'... resetting _arrivalTimes' )
 			sessionStorage.setItem( '_activeMeetIDs', _activeMeetID )
 			let _arrivalTimes = {}
-			sessionStorage.setItem( '_arrivalTimes', {} )
+			sessionStorage.setItem( '_arrivalTimes', JSON.stringify( _arrivalTimes ) )
 		}
 		
 		chrome.storage.sync.get( [ 'Current-Class-Code' ], function (r) {

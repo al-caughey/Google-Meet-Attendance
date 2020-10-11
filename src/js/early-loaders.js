@@ -2,21 +2,21 @@
 //Whether or not to create a log...
 let _generateLogs=false, _generateFiles='both', _autoSaveHTML=true, _autoSaveCSV=true, _checkPage4Changes=false
 let settingsArray=[ 
-	{ name: 'auto-clear-checks', type: 'checkbox', title: 'Automatically remove checks from previous Meet', text: 'Remove previous Meet checks:', default_value:true},
-	{ name: 'check-frequency', type: 'radio', title: 'Set time interval between attendance checks', text: 'Check attendance every:|10s|30s|1m|2m|5m', default_value: '10s'},
+	{ name: 'auto-clear-checks', type: 'checkbox', title: 'Automatically remove checks from previous Meets', text: 'Remove previous checks:', default_value:true},
+	{ name: 'check-frequency', type: 'radio', title: 'Set time interval between attendance checks', text: 'Check attendance every:|10s|20s|30s|1m', default_value: '10s'},
 	{ name: 'generate-files', type: 'radio', title: 'Select which reports to generate', text: 'Generate reports:|both|html|csv', default_value: 'both'},
 	{ name: 'auto-save-files', type: 'radio', title: 'Automatically save the files at the end of the Meet', text: 'Auto-save:|yes|no', default_value: 'yes'},
 	{ name: 'auto-hide-updates', type: 'number', title: 'Automatically close the updates window', text: 'Hide update msg after:', default_value: 10},
 	{ name: 'max-num-names', type: 'number', title: 'This is an arbitrary upper limit', text: 'Max names/class:', default_value:256},
-	{ name: 'sort-names', type: 'radio', title: 'Set the sort order for the names', text: 'Sort names by:|first|last|none', default_value:'none'},
+	{ name: 'sort-names', type: 'radio', title: 'Set the sort order for the names', text: 'Sort names by:|first|last', default_value:'last'},
 	{ name: 'backup-class-lists', type: 'button', title: 'Save a copy of your class names and class lists', text: 'Back-up classes & lists:'},
 	{ name: 'generate-log', type: 'checkbox', title: 'Generate a log of key events during your Meet for debugging purposes', text: 'Generate logs:'},
 	{ name: 'check-for-page-changes', type: 'checkbox', title: 'Monitor the page to see if anything changed', text: 'Check for DOM changes:'},
 	{ name: 'participant-attributes', type: 'input', title: 'Do not change unless recommended by Al', text: 'Attributes to check:', default_value:'data-self-name,data-participant-id,data-requested-participant-id'},
-	{ name: 'send-log-to-console', type: 'checkbox', title: 'Also send log messages to console', text: 'Debug messages:'},
+	{ name: 'send-log-to-console', type: 'checkbox', title: 'Also send log messages to console', text: 'Debug messages:'}
 ]
 
-chrome.storage.sync.get(null, function(r){
+chrome.storage.sync.get( null, function( r ){
 	_generateLogs=r[ 'generate-log' ]
 	for(let n in settingsArray){
 		let nm =settingsArray[n].name, dv=settingsArray[n].default_value
@@ -106,20 +106,22 @@ function setStartTime(){
 
 // update the attendance summary tab
 function updateAttendanceSummary(){
-	console.log( 'updateAttendanceSummary' )
+	//console.log( 'updateAttendanceSummary' )
 	let marked_present = document.querySelectorAll( '[ data-status="✔" ], [ data-status="?" ]' ).length||0
 	let new_present = document.querySelectorAll( '[ data-status="?" ]' ).length||0
 	let total_invited = document.querySelectorAll( '.student-button' ).length||0
-	document.getElementById( 'attendance-summary' ).innerHTML = marked_present+' of ' +(total_invited)+ ' participants (' + new_present + ' new)'
+	document.getElementById( 'attendance-present' ).innerHTML = marked_present
+	document.getElementById( 'attendance-absent' ).innerHTML = total_invited - marked_present
+	document.getElementById( 'attendance-new' ).innerHTML = new_present
 	if(!!document.getElementById( 'show-gma-attendance-fields' )) document.getElementById( 'show-gma-attendance-fields' ).title = "Present "+marked_present+' of ' + total_invited + ' participants (' + new_present + ' new)'
 }
 
 // contents of the invited-list field have changed
 function listChanged(){
-	console.log( 'listChanged' )
+	//console.log( 'listChanged' )
 	if (!document.getElementById( 'invited-list')) return
 	let currentClassCode = sessionStorage.getItem('_Class4ThisMeet')
-	let il = document.getElementById( 'invited-list'), ad = document.getElementById( 'gma-attendance-fields'), st = document.getElementById( 'save-csv-file' ), ht = document.getElementById( 'save-html-file')
+	let il = document.getElementById( 'invited-list'), ad = document.getElementById( 'gma-attendance-fields')
 	let sb=document.querySelectorAll( '.student-button' )||{}
 	for ( let wb of sb ){
 		wb.classList.add( 'mnbn' ) //might not be needed
@@ -140,7 +142,7 @@ function listChanged(){
 		let st = !!ccl[ln]?ccl[ln].s:''
 		ncl[ln]={s:st}
 		if( !document.querySelector( '[data-login-name="'+ln+'"]' ) ){
-			addClassButton( ln, dn, em )
+			addClassButton( ln, dn, em, '' )
 			updateAttendanceSummary()
 		}
 		else{
@@ -151,29 +153,30 @@ function listChanged(){
 	sessionStorage.setItem( '_studentsAtThisMeet', JSON.stringify(ncl) )
 	
 	if( document.querySelectorAll( '.student-button' ).length === 0){
-		st.style.visibility = 'hidden'
-		ht.style.visibility = 'hidden'
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', _autoSaveHTML )
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv ', _autoSaveCSV )
+		
 		il.title = 'Pick a class or enter some names'
 	}
 	else{
 		il.value = ct
 		ad.classList.remove('empty')
-		let gaf=document.getElementById( 'gma-attendance-fields' ).classList				
-		st.style.visibility = gaf.contains('meeting-over') || gaf.contains('in-meeting') ? 'visible' : 'hidden'
-		ht.style.visibility = gaf.contains('meeting-over') || gaf.contains('in-meeting') ? 'visible' : 'hidden'
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', ( _generateFiles == 'both' || _generateFiles == 'html') )
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv', ( _generateFiles == 'both' || _generateFiles == 'csv') )
 	}
 	nn=document.querySelectorAll( '.mnbn' )||{}
 	for ( let wb of nn ){
-		console.log( 'need to delete:', wb )
+		//console.log( 'need to delete:', wb )
 		document.getElementById( 'student-buttons' ).removeChild(wb)
 	}
 	updateClassList()
+	sortButtons()
 	checkNumStudents()
 }
 
 // save settings values
 function saveSettings(e){
-	console.log( 'saveSettings' )
+	//console.log( 'saveSettings' )
 
 	let ccc={}
 	let tgt=e.target.id
@@ -191,14 +194,18 @@ function saveSettings(e){
 	ccc[ tgt ] = tgv
 	chrome.storage.sync.set( ccc, null )
 	write2log( 'Changed settings: ' + tgt + ' = ' + tgv)
-	console.log( 'Changed settings: ' + tgt + ' = ' + tgv)
+	//console.log( 'Changed settings: ' + tgt + ' = ' + tgv)
 	if( tgt === 'max-num-names' ) checkNumStudents()
-	else if( tgt === 'generate-files' ) document.getElementById( 'gma-attendance-fields' ).setAttribute('data-generate-files', tgv )
+	else if( tgt === 'generate-files' ) {
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-generate-files', tgv )
+		_generateFiles = tgv
+	}
 	else if( tgt === 'generate-log' ) _generateLogs = tgv
 	else if( tgt === 'generate-files' ) _generateFiles = tgv
 	else if( tgt === 'auto-save-files' ) {
 		_autoSaveHTML = ( _generateFiles == 'both' || _generateFiles == 'html' ) && ( tgv == 'yes' )
 		_autoSaveCSV = ( _generateFiles == 'both' || _generateFiles == 'csv' ) && ( tgv == 'yes' )
+		data-generate-files
 	}
 	else if( tgt === 'sort-names' ) listChanged()
 }
@@ -206,12 +213,12 @@ function saveSettings(e){
 // start the process that checks every minute to see who is still in the Meet
 function startMonitoring(){
 	
-	console.log( 'startMonitoring' )
+	//console.log( 'startMonitoring' )
 
 	chrome.storage.sync.get( ['check-frequency' ], function(r){
-		let cia={'10s':{interval:10000},'30s':{interval:30000},'1m':{interval:60000},'2m':{interval:120000},'5m':{interval:300000}}
-		let ci=cia[r['check-frequency' ]].interval||60000
-		console.log('check-frequency', ci)
+		let cia = {'10s' : { interval: 10000 }, '20s' : { interval: 20000 }, '30s' : {interval : 30000}, '1m' : { interval : 60000 } }
+		let ci = cia[ r[ 'check-frequency' ] ].interval||60000
+		//console.log('check-frequency', ci)
 
 		document.getElementById( 'p-attendance-summary' ).classList.add('monitoring-active' )
 		document.getElementById( 'p-attendance-summary' ).setAttribute('title', 'Monitoring Attendance' )
@@ -224,7 +231,7 @@ function startMonitoring(){
 
 // 'disable' slider was changed
 function enableDisableGMA(){
-	console.log( 'enableDisableGMA' )
+	//console.log( 'enableDisableGMA' )
 
 	gmaEnabled=!gmaEnabled
 	document.getElementById( 'enable-gma' ).setAttribute('data-enabled', gmaEnabled)
@@ -232,62 +239,67 @@ function enableDisableGMA(){
 }
 
 
-let _arrivalTimes=JSON.parse(sessionStorage.getItem('_arrivalTimes'))||{}
+let _arrivalTimes = JSON.parse( sessionStorage.getItem( '_arrivalTimes' ) ) || {}
 let monitoring
 let gmaEnabled=true
 
 let uiStrings = getMeetUIStrings()
 // create regexes
-//let re_replace = new RegExp('(\\b)*'+uiStrings.you+'\n|(\\b)*'+uiStrings.joined+'(\\b)*|(\\b)*'+uiStrings.more+'(\\b)*|'+uiStrings.hide, "gi");
-let re_replace = new RegExp('^'+uiStrings.you+'$|\\b'+uiStrings.joined+'(\\b)*|(\\b)*'+uiStrings.more+'(\\b)*|(\\b)*'+uiStrings.keep_off+'(\\b)*|'+uiStrings.hide, "gi");
-//console.log(re_replace)
+let re_replace = new RegExp('^' + uiStrings.you + '$|\\b' + uiStrings.joined + '(\\b)*|(\\b)*' + uiStrings.more + '(\\b)*|(\\b)*' + uiStrings.keep_off + '(\\b)*|' + uiStrings.hide, "gi" );
 let duplicatedLines = /^(.*)(\r?\n\1)+$/gim
-
+ 
 function cleanseInnerHTML(tih){
 	if (!tih.querySelector('[data-self-name]')){
-		console.log('no data-self name\n'+tih.innerHTML)
+		//console.log( 'no data-self name\n', tih.innerHTML )
 		return ''
 	}
-	let nm=tih.querySelector('[data-self-name]' ).innerHTML
-	if (!nm){
+	let nm = tih.querySelector( '[data-self-name]' ).innerHTML 
+	if ( !nm ){
+		//console.log( 'data-self name is empty\n', tih.innerHTML )
 		return ''
 	}
+	nm=tih.innerHTML
 	
-	
-	/*
-	to remove accented characters... from StackOverFlow
+	/* 	to remove accented characters... from StackOverFlow
 	const str = "Crème Brulée"
 	str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 	*/
 
-	let alltext=nm.replace(/<[^>]*?>/ig,'\n')
-		.replace(re_replace,'')
-		.replace(/\n\s*\n*/gm,'\n')
-		.replace(/(\(|（).*(\)|）)/ig,'')
-		.replace(duplicatedLines, "$1")
+	let alltext=nm.replace( /<[^>]*?>/ig,'\n' )
+		.replace( re_replace, '' )
+		.replace( /\n\s*\n*/gm, '\n' )
+		.replace( /(\(|（).*(\)|）)/ig, '' )
+		.replace( duplicatedLines, "$1" )
 		.trim()
-		.split('\n')
+		.split( '\n' )
 		
 	if( !alltext == alltext[0] ){
 		write2log('huh --> ' + nm)
+		//console.log('huh --> ' + nm)
 	}
 	return alltext[0]
 }
 
 function getListOfParticipants(){
-	console.log( 'getListOfParticipants' )
-	let loid=[]
-	let participants = document.querySelectorAll('[data-participant-id],[data-requested-participant-id]')
-	//let participants = document.querySelectorAll('[data-self-name]')
-	let now = new Date(), ctime = now.getHours()+':'+twod(now.getMinutes())
-	for (let aa of participants){
+	//console.log( 'getListOfParticipants' )
+	let loid = []
+	
+	let participants = document.querySelectorAll( '[data-participant-id], [data-requested-participant-id]' )
+	//let participants = document.querySelectorAll('[data-self-name],[data-participant-id],[data-requested-participant-id]')
+	let now = new Date(), ctime = now.getHours() + ':' + twod( now.getMinutes() )
+	let changed = false
+	for ( let aa of participants ){
 		// parse the innerHTML; remove tagged content, duplicated lines, etc.
-		let pn= cleanseInnerHTML(aa)
+		let pn = cleanseInnerHTML( aa )
 		// no text --> get the next line
-		if(pn === '')	continue
+		if( pn === '' )	continue
 		let lc = pn.toLowerCase().trim()
-		if( lc.indexOf(uiStrings.presenting) >= 0 || lc.indexOf(uiStrings.presentation) >= 0) continue
-		let pidr=aa.dataset.participantId||aa.dataset.requestedParticipantId||aa.dataset.initialParticipantId, pid=pidr.split('/')[3]
+		if( lc.indexOf( uiStrings.presenting ) >= 0 || lc.indexOf( uiStrings.presentation ) >= 0 ) continue
+		let pidr = aa.dataset.participantId||aa.dataset.requestedParticipantId||aa.dataset.initialParticipantId
+		if ( !pidr ){
+			continue
+		}
+		pid = pidr.split( '/' )[3]
 		// if necessary, add to list of id's
 		if ( !loid.includes(pid) ){
 			loid.push(pid)
@@ -295,19 +307,23 @@ function getListOfParticipants(){
 		// if there's no matching entry, add it with arrival time
 		let ccl = JSON.parse( sessionStorage.getItem( '_studentsAtThisMeet') ) || {}
 		let st=''
-		if( !document.querySelector( '[data-login-name="'+lc+'"]' ) ){
-			console.log( '_arrivalTimes: new user button', lc )
-			addClassButton( '? '+lc, '', '' )
+		let dln=document.querySelector( '[data-login-name="' + lc + '"]' )
+		//console.log( 'lc', lc,  dln )
+		if( !dln ){
+			//console.log( '_arrivalTimes: new user button', lc )
+			addClassButton( '? ' + lc, '', '', '' )
 			updateAttendanceSummary()
-			document.querySelector( '[data-login-name="'+lc+'"]' ).setAttribute( 'data-arrived', ctime )
+			document.querySelector( '[data-login-name="' + lc + '"]' ).setAttribute( 'data-arrived', ctime )
 			st='?'
+			changed = true
 		}
-		else if ( document.querySelector( '[data-login-name="'+lc+'"]' ).getAttribute( 'data-status' ) == '' ){
-			document.querySelector( '[data-login-name="'+lc+'"]' ).setAttribute( 'data-status', '✔' )
+		else if ( dln.getAttribute( 'data-status' ) == '' ){
+			dln.setAttribute( 'data-status', '✔' )
 			st='✔'
+			updateAttendanceSummary()
 		}
 		if( !ccl[ lc ] || !ccl[ lc ].s  ){
-			ccl[ lc ] = { s:st }
+			ccl[ lc ] = { s : st }
 		}
 		sessionStorage.setItem( '_studentsAtThisMeet', JSON.stringify(ccl) )
 		
@@ -323,12 +339,15 @@ function getListOfParticipants(){
 			document.querySelector('[data-login-name="'+lc+'"]' ).classList.add('is-anonymous')
 		}
 	}
+	if( changed ){
+		updateClassList()
+	}
 	return loid
 }
 
 let oldtime=''
 function checkParticipants(){
-	console.log('checkParticipants')
+	//console.log('checkParticipants')
 	let now = new Date(), hr=now.getHours(), min=now.getMinutes(), sec=now.getSeconds(), ctime = hr+':'+twod(min), cts = ctime+':'+twod(sec)
 	if(!!document.getElementById( 'show-gma-attendance-fields')){
 		document.getElementById( 'show-gma-attendance-fields' ).classList.remove('checking')
@@ -337,8 +356,6 @@ function checkParticipants(){
 		}, 100)
 	} 
 
-	let tal = document.getElementById( 'invited-list' ).value
-	let tallc = tal.toLowerCase().replace(/✔[ ]{2,}/g,'✔ ' ).replace(/\?[ ]{2,}/g,'\? ' ).replace(/^[\t ]*|[\t ]*$/gm,'' ).replace(/\t/gm,' ' ).split('\n')
 	let changed = false
 	document.getElementById( 'p-attendance-summary' ).setAttribute('title', 'Monitoring - last check: '+cts)
 
@@ -350,34 +367,32 @@ function checkParticipants(){
 		_arrivalTimes[pid].last_seen=ctime
 		if(!_arrivalTimes[pid].checks.includes(ctime)){
 			_arrivalTimes[pid].checks.push(ctime)
-			changed=true
 		} 
-		_arrivalTimes[pid].stayed=_arrivalTimes[pid].length
-		document.querySelector( '[data-login-name="'+lc+'"]' ).setAttribute( 'data-last-seen', ctime )
-
-		let ats=JSON.stringify(_arrivalTimes)
-		sessionStorage.setItem('_arrivalTimes', ats)
+		_arrivalTimes[pid].stayed=_arrivalTimes[pid].checks.length
+		let cp=document.querySelector( '[data-login-name="'+lc+'"]' )
+		if( cp.getAttribute( 'data-arrived' ) == '' ) cp.setAttribute( 'data-arrived', ctime )
+		cp.setAttribute( 'data-last-seen', ctime )
+		changed=true
 	}
 		
 	if ( oldtime != ctime ) {
 		updateDuration()
 		oldtime = ctime
 	}
+	sessionStorage.setItem( '_arrivalTimes', JSON.stringify( _arrivalTimes ) )
 	// if the list changed, a littlehousekeeping and save the changes
 	if (changed) {
-		document.getElementById( 'save-csv-file' ).style.visibility = ( _generateFiles == 'both' || _generateFiles == 'csv') ? 'visible' : 'hidden'
-		document.getElementById( 'save-html-file' ).style.visibility = ( _generateFiles == 'both' || _generateFiles == 'html') ? 'visible' : 'hidden'
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-html', ( _generateFiles == 'both' || _generateFiles == 'html') )
+		document.getElementById( 'gma-attendance-fields' ).setAttribute('data-save-needed-csv', ( _generateFiles == 'both' || _generateFiles == 'csv') )
+
 		write2log('checkParticipants - list changed')
-		//document.getElementById( 'invited-list' ).value = tallc.join('\n')
-		//listChanged()
-		sessionStorage.setItem('_arrivalTimes', JSON.stringify(_arrivalTimes))
 		updateClassList()
 	}
 }
 	
 // update the duration field
 function updateDuration(){
-	console.log( 'updateDuration' )
+	//console.log( 'updateDuration' )
 	let now = new Date(), hr=now.getHours(), min=now.getMinutes(), ctime=hr+':'+twod(min)
 	stime=(sessionStorage.getItem('Meeting-start-time')||ctime).split(':')
 	let duration = hr*60 + min*1 -(stime[0]*60+stime[1]*1)
@@ -395,7 +410,7 @@ function write2log(txt){
 	sessionStorage.setItem( 'GMA-Log', plt + '\n' + ctime + ' - ' + txt )
 	chrome.storage.sync.get( [ 'send-log-to-console' ], function (r) {
 		if( r['send-log-to-console' ] ){
-			console.log( 'w2l --> ', txt )
+			//console.log( 'w2l --> ', txt )
 		}
 	})
 }
@@ -408,7 +423,7 @@ function autoHideAddClassMessage(nn){
 		document.getElementById( 'add-class-message' ).style.display='none'
 		document.getElementById( 'gma-class-list-header' ).style.display='block'
 		document.getElementById( 'gma-add-class' ).style.display='none'
-		document.getElementById( 'invited-list' ).style.display='block'
+		document.getElementById( 'student-buttons' ).style.display='flex'
 		document.getElementById( 'add-class-message' ).classList.remove('bold')
 	}, delay)
 }
@@ -431,7 +446,7 @@ function checkNumStudents(){
 }
 	
 function backupClassLists(){
-	console.log( 'backupClassLists' )
+	//console.log( 'backupClassLists' )
 
 	let now = new Date(), d = now.getDate(), m = now.getMonth()+1, y = now.getFullYear()
 	let ctime = now.getHours()+':'+twod(now.getMinutes())
@@ -453,7 +468,7 @@ function backupClassLists(){
 	})
 }
 function backupOldClassLists(){
-	console.log( 'backupOldClassLists' )
+	//console.log( 'backupOldClassLists' )
 
 	let now = new Date(), d = now.getDate(), m = now.getMonth()+1, y = now.getFullYear()
 	let ctime = now.getHours()+':'+twod(now.getMinutes())
@@ -479,25 +494,4 @@ function backupOldClassLists(){
 		temp_a.click()
 		write2log('Old class names and lists backed up to ' + filename )
 	})
-}
-function sortNamesByFirst(a, b){
-	let aa = a.toLowerCase().replace( /[?✔] /, '' ), bb = b.toLowerCase().replace( /[?✔] /, '' )
-
-	let af = ( aa.indexOf( ',' ) > -1 ) ? aa.split( ',' )[1].trim() : aa
-	let al = ( aa.indexOf( ',' ) > -1 ) ? aa.split( ',' )[0].trim() : ''
-	let bf = ( bb.indexOf( ',' ) > -1 ) ? bb.split( ',' )[1].trim() : bb
-	let bl = ( bb.indexOf( ',' ) > -1 ) ? bb.split( ',' )[0].trim() : ''
-	return af < bf ? -1 : af > bf ? 1 : ( al < bl ? -1 : al > bl ? 1 : 0 )
-}
-function sortNamesByLast(a, b){
-	function gLN(v){
-		return v.toLowerCase().replace( /[?✔]+ /g, '' ).replace( /\[[^\]]*?\]/g, '' ).replace( /\([^\)]*?\)/g, '' ).replace( /<[^>]*?\)/g, '' ).trim()
-	}
-	let aa = gLN( a ), bb = gLN( b )
-
-	let al = ( aa.indexOf( ',' ) > -1 ) ? aa.split( ',' )[0].trim() : [ ...aa.split(' ') ].pop().trim()
-	let af = ( aa.indexOf( ',' ) > -1 ) ? aa.split( ',' )[1].trim() : aa
-	let bl = ( bb.indexOf( ',' ) > -1 ) ? bb.split( ',' )[0].trim() : [ ...bb.split(' ') ].pop().trim()
-	let bf = ( bb.indexOf( ',' ) > -1 ) ? bb.split( ',' )[1].trim() : bb
-	return al < bl ? -1 : al > bl ? 1 : (af < bf ? -1 : af > bf ? 1 : 0)
 }

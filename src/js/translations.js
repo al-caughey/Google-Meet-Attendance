@@ -10,6 +10,7 @@ const meetUIStrings = {
 	it : { presenting : "presentando", presentation : "presentazione", you : "tu", joined : "(sta partecipando|partecipa)", hide : '\\w* (partecipante|participant)'},
 	nl : { presenting : "presentatie", presentation : "presenteert", you : "jij", joined : "neemt( nu|) deel", hide : '(deelnemer \\w*|\\w* particpant)'},
 	pt : { presenting : "apresentando", presentation : "apresentação", you : "(eu|você)", joined : "(está|participando|aderiu( à chamada|))", hide : '\\w* participant(e)?'},
+	ro : { presenting : "prezentare", presentation : "prezentare", you : "tu", joined : "(está|participando|aderiu( à chamada|))", hide : '\\w* participant(e)?'},
 	zh : { presenting : "你的演示|你正在向所有人展示|停止展示|展示内容中的音频", presentation : "展示", you : "你", joined : "(已加入|加入了通话)", hide : '\\w* participant(e)?'},
 }
 const dropDownStrings = {
@@ -20,8 +21,10 @@ const dropDownStrings = {
 	it : { classList : "Elenco delle classi", myClasses : "Le mie classi", otherOptions : "Altre opzioni", add : "Inserisci", reset : "Ripristina", adding : 'Inserisci il nome della tua classe', added : 'La classe è stata aggiunta', not_added : 'La classe è stata *non* aggiunta' },
 	nl : { classList : "Klassenlijst", myClasses : "Mijn lessen", otherOptions : "Andere opties", add : "Toevoegen", reset : "Reset", adding : 'Voer de naam van je klas in', added : 'De klas is toegevoegd', not_added : 'De klas is *niet* toegevoegd' },
 	pt : { classList : "Lista de turmas", myClasses : "Minhas aulas", otherOptions : "Outras opções", add : "Adicionar", reset : "Redefinir", adding : 'Digite o nome da sua turma', added : 'A turma foi adicionada', not_added : 'A turma foi *não* adicionada' },
+	ro : { classList : "Lista de clase", myClasses : "Cursurile mele", otherOptions : "Alte optiuni", add : "Adăuga", reset : "Resetați", adding : 'Introduceți numele clasei dvs.', added : 'Clasa a fost adăugată', not_added : 'Clasa nu a fost adăugată' },
 	zh : { classList : "班级名单", myClasses : "我的课室", otherOptions : "其他选项/其他选择", add : "加", reset : "重启", adding : '输入您的班级名称', added : '该课程已添加', not_added : '未添加课程' },
 }
+
 // return strings based on language
 function getMeetUIStrings(){
 	let lang = document.documentElement.lang.split( '-' )[ 0 ]||'en'

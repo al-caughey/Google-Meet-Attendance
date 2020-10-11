@@ -5,11 +5,12 @@
 */
 let updateSummary=[
 	{
-		version: '1.0.0', 
+		version: '1.0.1', 
 		title: 'Changes in v', 
 		updateType: 0,
-		intro: "On *significant* under-the-covers change:", 
-		body: `<li>previously, I monitored the structure of the HTML page and if it changed, checked to see whether there were any new participants. Google, however, makes *lots* of changes to the page and this added considerably to the amount of work that the extension has to do (aka load on your CPU).  With the expanded Tiled layout (and/or Grid View), this should no longer be necessary... (I hope!) 
+		intro: "Lots of exciting changes:", 
+		body: `<li>Far too many updates to list here... watch the new video(s) on my <a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>YouTube channel</a> and/or check the <a href='https://facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.  OK? 
+		<li>Thanks to every who helped with the Beta and also a heartfelt thank you to Eric Findlay who's answering so many inquiries on the Facebook page!
 		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a>.</p>`,
 		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
@@ -497,6 +498,7 @@ function showSettings(){
 	// create settings options
 	function addSettingsOption(n){
 		let nm = settingsArray[n].name, ty = settingsArray[n].type, ti = settingsArray[n].title, te = settingsArray[n].text, dv = settingsArray[n].default_value
+		//console.log('addSettingsOption', nm)
 		let hpb = document.getElementById( 'help-page-body' )
 		if( ty === 'button' ){
 			let tmp = addElement( hpb, 'span', nm + '-label', ti, 'settings-label', '' )
@@ -540,15 +542,15 @@ function showSettings(){
 			son.push(nm)
 			chrome.storage.sync.get(son, function(r){
 				//let tv=r[nm]==='undefined'||(!settingsArray[n].default_value?'':settingsArray[n].default_value)
-				let tv=typeof(r[nm] )==='undefined'?(!dv?'':dv):r[nm]
-				if ( ty==='checkbox'){
-					document.getElementById(nm).checked=tv
+				let tv = typeof( r[ nm ] ) === 'undefined' ? ( !dv ? '' : dv ) : r[ nm ]
+				if ( ty === 'checkbox'){
+					document.getElementById( nm ).checked = tv
 				}
-				else if ( ty==='radio'){
-					document.getElementById('radio-'+nm+'-'+tv).checked=true
+				else if ( ty === 'radio'){
+					document.getElementById( 'radio-' + nm + '-' + tv ).checked = true
 				}
 				else{
-					document.getElementById(nm).value=tv			
+					document.getElementById( nm ).value = tv			
 				}
 			})
 		}
