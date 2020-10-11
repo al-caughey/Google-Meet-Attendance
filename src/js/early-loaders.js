@@ -245,6 +245,7 @@ let gmaEnabled=true
 
 let uiStrings = getMeetUIStrings()
 // create regexes
+let re_you = new RegExp('^' + uiStrings.you + '$' , "gi" );
 let re_replace = new RegExp('^' + uiStrings.you + '$|\\b' + uiStrings.joined + '(\\b)*|(\\b)*' + uiStrings.more + '(\\b)*|(\\b)*' + uiStrings.keep_off + '(\\b)*|' + uiStrings.hide, "gi" );
 let duplicatedLines = /^(.*)(\r?\n\1)+$/gim
  
@@ -266,6 +267,7 @@ function cleanseInnerHTML(tih){
 	*/
 
 	let alltext=nm.replace( /<[^>]*?>/ig,'\n' )
+		.replace( re_you, '' )
 		.replace( re_replace, '' )
 		.replace( /\n\s*\n*/gm, '\n' )
 		.replace( /(\(|（).*(\)|）)/ig, '' )
@@ -294,6 +296,9 @@ function getListOfParticipants(){
 		// no text --> get the next line
 		if( pn === '' )	continue
 		let lc = pn.toLowerCase().trim()
+		if ( lc.replace( re_you , '' ) == '' ) {
+			continue
+		}
 		if( lc.indexOf( uiStrings.presenting ) >= 0 || lc.indexOf( uiStrings.presentation ) >= 0 ) continue
 		let pidr = aa.dataset.participantId||aa.dataset.requestedParticipantId||aa.dataset.initialParticipantId
 		if ( !pidr ){

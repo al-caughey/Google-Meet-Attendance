@@ -9,9 +9,10 @@ let updateSummary=[
 		title: 'Changes in v', 
 		updateType: 0,
 		intro: "Lots of exciting changes:", 
-		body: `<li>Far too many updates to list here... watch the new video(s) on my <a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>YouTube channel</a> and/or check the <a href='https://facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.  OK? 
+		body: `<li>Far too many updates to list here... watch the video about <a class='gma-video-link' href='https://www.youtube.com/watch?v=pQG1IBiv83Q' target='_blank'>what's been changed</a> and/or check the <a href='https://facebook.com/GoogleMeetAttendance' target='_blank'>Facebook page</a>.  OK? 
 		<li>Thanks to every who helped with the Beta and also a heartfelt thank you to Eric Findlay who's answering so many inquiries on the Facebook page!
-		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>See a video about these and other changes</a>.</p>`,
+		<p class='warning'>FYI - This update to the Google Meet Attendance extension makes some internal changes to its internal data structures. As a precaution, a '<i>just-in-case</i>' back-up of your current class names and student lists was saved to your downloads directory.</p>
+		<p><a class='gma-video-link' href='https://youtube.com/c/AllanCaughey/' target='_blank'>The full YouTube video library</a>.</p>`,
 		footer:"Click the next <img id='nav-btn'> button above to see changes in earlier versions."
 	},
 	{

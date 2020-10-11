@@ -513,7 +513,6 @@
 
 			}
 			else if(status==='update' ){
-				//alert('FYI - This update to the Google Meet Attendance extension makes some internal changes to its internal data structures.\n\nAs a precaution, `just-in-case`, a back-up of your current class names and student lists has been saved to your downloads directory.\n\nIf you have any questions, check the Facebook page:\n https://facebook.com/GoogleMeetAttendance.')
 				showUpdate()
 
 				document.getElementById( 'gma-attendance-fields' ).classList.add( 'updated' )
