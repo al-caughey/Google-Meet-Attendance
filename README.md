@@ -1,3 +1,7 @@
+# NB - The Google Meet Attendance extension has been purchased by another organization and I am no longer involved with the project... sorry, I am not allowed to discuss the details any further than that.  I have told them about the issues in version 1.5. 
+
+Support questions should now be sent to support@meet-attendance.com.
+
 # [Google Meet Attendance](https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd) is now a Chrome extension!  
 https://chrome.google.com/webstore/detail/fkdjflnaggakjamjkmimcofefhppfljd
 # And also a firefox extension:
