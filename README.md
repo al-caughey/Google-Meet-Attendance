@@ -1,6 +1,6 @@
-# Update from Al... The Google Meet Attendance extension has been purchased by another organization and I am no longer involved with the project... sorry, I am not allowed to discuss the details any further than that.  Support questions should now be sent to support@meet-attendance.com.
+# Update from Al... in early 2021, the Google Meet Attendance extension was purchased by another organization and I am no longer involved with the project... sorry, I am not allowed to discuss the details any further than that.  Support questions should now be sent to support@meet-attendance.com.
 
-Rest assured it was _*not*_ an easy decision and I truly appreciate all of the support I was given while I was maintaining the code.  I have told the new owners/developers about the issues in version 1.5. 
+Rest assured this was *_not_* an easy decision.  I truly appreciate all of the encouragement and support I receieved as this project grew over the past year. Thanks!  Take care and stay safe.
 
 # Introduction and acknowledgements
 
